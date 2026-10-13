@@ -1,0 +1,263 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- iMessage talks directly to Apple's push service over a long-lived socket. -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!-- The push connection has to survive the app being backgrounded, or messages stop arriving. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <!-- Held only while an arriving message is being stored and announced; see PushWakeLock. -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <!--
+        Doze firewalls the network of every app that is not on the battery-optimisation allowlist,
+        foreground services included. Without this the push socket stays open and completely silent
+        while the phone is idle, and the whole backlog lands the moment it wakes. See
+        BatteryExemption, which is what asks for it.
+    -->
+    <uses-permission
+        android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"
+        tools:ignore="BatteryLife" />
+
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
+    <!--
+        Registering the phone number with iMessage: Apple verifies it by texting back a signature in
+        reply to a text we send its gateway. Asked for only when the setting is switched on.
+    -->
+    <uses-permission android:name="android.permission.SEND_SMS" />
+    <uses-permission android:name="android.permission.RECEIVE_SMS" />
+    <!-- Optional: finds the reply in the inbox if the broadcast never reached us. -->
+    <uses-permission android:name="android.permission.READ_SMS" />
+    <!--
+        Verifying the number through the SIM instead of SMS, for carriers that drop Apple's text.
+        An app-op nothing grants on its own: the user enables it once over adb.
+    -->
+    <uses-permission
+        android:name="android.permission.USE_ICC_AUTH_WITH_DEVICE_IDENTIFIER"
+        tools:ignore="ProtectedPermissions" />
+    <uses-feature android:name="android.hardware.telephony" android:required="false" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
+
+    <!--
+        Games run in a separate, optional app (the pigeon app, com.ruskcoder.messages.games). On
+        API 30+ it is invisible to a package lookup or a service bind without an explicit <queries>
+        entry, even when installed. See PigeonClient.
+    -->
+    <queries>
+        <package android:name="com.ruskcoder.messages.games" />
+        <intent>
+            <action android:name="com.ruskcoder.messages.games.action.GAME_SESSION" />
+        </intent>
+        <!--
+            OpenPigeon, the other games app, reached over BlueBubbles' Madrid extension protocol.
+            The <intent> entry is what lets queryIntentServices see the service metadata that names
+            the balloon it speaks for; without it the extension is invisible even when installed.
+            See OpenPigeonClient.
+        -->
+        <package android:name="com.openbubbles.openpigeon" />
+        <intent>
+            <action android:name="com.openbubbles.messaging.MadridExtensionService" />
+        </intent>
+    </queries>
+
+    <application
+        android:name=".MessagesApp"
+        android:allowBackup="false"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.Messages">
+
+        <!--
+            The share sheet's way in. Its own task affinity and no place in recents, so a share
+            stacks on top of whatever app it came from and disappears again when it is done rather
+            than dragging the running messages app to the front - see ShareActivity.
+
+            The MIME types are what the sheet filters on: text/* for a link or a quote, and */* so
+            a picture, a clip or a document can be sent as an attachment.
+        -->
+        <activity
+            android:name=".ShareActivity"
+            android:exported="true"
+            android:theme="@style/Theme.Messages"
+            android:windowSoftInputMode="adjustResize"
+            android:taskAffinity=""
+            android:excludeFromRecents="true"
+            android:label="@string/app_name">
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/*" />
+                <data android:mimeType="image/*" />
+                <data android:mimeType="video/*" />
+                <data android:mimeType="audio/*" />
+                <data android:mimeType="application/*" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.SEND_MULTIPLE" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="image/*" />
+                <data android:mimeType="video/*" />
+                <data android:mimeType="audio/*" />
+                <data android:mimeType="application/*" />
+            </intent-filter>
+        </activity>
+
+        <!--
+            Lets an attachment be handed to another app. Everything the viewer can share lives in
+            internal storage, which a file:// uri cannot legally cross a process boundary with.
+        -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+
+        <!--
+            singleTask so a notification tap reuses the running instance: the conversation it names
+            replaces what is on screen instead of stacking a second copy of the app behind it.
+        -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:theme="@style/Theme.Messages"
+            android:windowSoftInputMode="adjustResize"
+            android:launchMode="singleTask">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <!-- Direct share targets for the conversation shortcuts; see res/xml/shortcuts.xml. -->
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
+        </activity>
+
+        <!--
+            A conversation floating as a bubble over other apps. Embedded by the system inside the
+            bubble's window, which is what the three attributes below allow; a document of its own per
+            launch so two bubbles are two conversations rather than one activity fighting over both.
+        -->
+        <activity
+            android:name=".BubbleActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Messages"
+            android:windowSoftInputMode="adjustResize"
+            android:allowEmbedded="true"
+            android:resizeableActivity="true"
+            android:documentLaunchMode="always" />
+
+        <!-- The recent-chats home-screen widget. -->
+        <receiver
+            android:name=".widget.RecentChatsWidgetReceiver"
+            android:exported="true"
+            android:label="Recent chats">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/recent_chats_widget" />
+        </receiver>
+
+        <!--
+            Holds the Apple push socket. Foreground rather than a WorkManager job because the
+            connection is long-lived and inbound-driven: there is nothing to poll for, and a
+            backgrounded process would simply stop receiving.
+        -->
+        <service
+            android:name=".imessage.PushService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Keeps a connection alive with Apple Push Services to receive end-to-end encrypted iMessages directly from Apple." />
+        </service>
+
+        <!--
+            Reply and mark-as-read from the notification shade. Not exported: the only sender is
+            this app's own PendingIntents, and the reply intent is mutable so RemoteInput can write
+            the typed text into it.
+        -->
+        <receiver
+            android:name=".imessage.NotificationActions"
+            android:exported="false" />
+
+        <!--
+            Apple's reply to a phone-number verification. Exported because the telephony stack is
+            the sender, and guarded by BROADCAST_SMS so only it can be. Some carriers deliver the
+            reply as a data SMS, hence the second filter.
+        -->
+        <receiver
+            android:name=".imessage.RegResponseReceiver"
+            android:exported="true"
+            android:permission="android.permission.BROADCAST_SMS">
+            <intent-filter>
+                <action android:name="android.provider.Telephony.SMS_RECEIVED" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.DATA_SMS_RECEIVED" />
+                <data android:scheme="sms" />
+                <data android:host="*" />
+                <data android:port="*" />
+            </intent-filter>
+        </receiver>
+
+        <!--
+            Nothing arrives while the process is dead, so the push socket has to be re-opened after
+            a reboot rather than waiting for the user to open the app.
+        -->
+        <receiver
+            android:name=".imessage.BootReceiver"
+            android:exported="true"
+            android:enabled="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
+
+        <!--
+            The alarm behind a scheduled message. Not exported: the only thing that ever sends it
+            this intent is the PendingIntent the app itself handed to AlarmManager.
+        -->
+        <receiver
+            android:name=".imessage.ScheduledSendReceiver"
+            android:exported="false" />
+
+        <!--
+            Asks Google Play services to install the backported system photo picker on devices that
+            shipped without one. Without it `PickVisualMedia.isPhotoPickerAvailable` is false there and
+            the gallery tile falls through to the plain intent in `AttachmentFlow`.
+        -->
+        <service
+            android:name="com.google.android.gms.metadata.ModuleDependencies"
+            android:enabled="false"
+            android:exported="false"
+            tools:ignore="MissingClass">
+            <intent-filter>
+                <action android:name="com.google.android.gms.metadata.MODULE_DEPENDENCIES" />
+            </intent-filter>
+            <meta-data
+                android:name="photopicker_activity:0:required"
+                android:value="" />
+        </service>
+    </application>
+
+</manifest>

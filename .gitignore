@@ -1,0 +1,43 @@
+*.iml
+.gradle
+/local.properties
+/.idea/caches
+/.idea/libraries
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+
+# Kotlin incremental-compilation cache.
+.kotlin
+
+# IDE project files, which are per-machine.
+/.idea
+
+# Rust build output for the iMessage core. Several gigabytes of cargo cache and
+# intermediate artifacts; rebuilt by `./gradlew assembleDebug -PbuildRust`.
+rust/**/target/
+
+# Prebuilt native libraries. Tens of megabytes each and reproducible from source:
+# `libimessage_core.so` comes from the Rust cross-compile above. `libunicorn.so` is a separate
+# prebuilt, needed per ABI only by builds that include the closed-source validation backend.
+app/src/main/jniLibs/**/*.so
+
+# Editor settings pinning a machine-specific JDK path (see .vscode/settings.json).
+/.vscode
+
+# Graphify knowledge graph builder output (large intermediate files)
+/graphify-out/
+
+# The closed-source validation backend: its own private repository, checked out here. Never part
+# of this one. See rust/rustpush/open-absinthe/README.md and scripts/check-no-private.sh.
+/private/
+
+# Claude Code session state.
+/.claude/

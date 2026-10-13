@@ -1,0 +1,7 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- The UI is entirely Jetpack Compose; this only sets the pre-Compose window background so
+         there's no white/black flash between process start and the first Compose frame. -->
+    <style name="Theme.Messages" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="android:windowLightStatusBar">true</item>
+    </style>
+</resources>

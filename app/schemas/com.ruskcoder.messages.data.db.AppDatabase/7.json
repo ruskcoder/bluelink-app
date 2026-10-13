@@ -1,0 +1,377 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 7,
+    "identityHash": "2a1d5e0ce631c2f00423023e4d4055b9",
+    "entities": [
+      {
+        "tableName": "chats",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `color` TEXT NOT NULL, `initials` TEXT NOT NULL, `is_group` INTEGER NOT NULL, `favorite` INTEGER NOT NULL, `muted` INTEGER NOT NULL, `unread` INTEGER NOT NULL, `preview` TEXT NOT NULL, `updated_at` INTEGER NOT NULL, `theme` TEXT NOT NULL, `members` TEXT, `photo_uri` TEXT, `archived` INTEGER NOT NULL, `pinned` INTEGER NOT NULL, `participants` TEXT, `sender_handle` TEXT, `group_id` TEXT, `group_version` INTEGER NOT NULL, `service` TEXT, `snoozed_until` INTEGER NOT NULL, `wallpaper_uri` TEXT, `read_receipts` INTEGER NOT NULL, `typing_indicators` INTEGER NOT NULL, `blocked` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "color",
+            "columnName": "color",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "initials",
+            "columnName": "initials",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isGroup",
+            "columnName": "is_group",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "favorite",
+            "columnName": "favorite",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "muted",
+            "columnName": "muted",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "unread",
+            "columnName": "unread",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "preview",
+            "columnName": "preview",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updatedAt",
+            "columnName": "updated_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "theme",
+            "columnName": "theme",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "members",
+            "columnName": "members",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "photoUri",
+            "columnName": "photo_uri",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "archived",
+            "columnName": "archived",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "pinned",
+            "columnName": "pinned",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "participants",
+            "columnName": "participants",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "senderHandle",
+            "columnName": "sender_handle",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "groupId",
+            "columnName": "group_id",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "groupVersion",
+            "columnName": "group_version",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "service",
+            "columnName": "service",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "snoozedUntil",
+            "columnName": "snoozed_until",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "wallpaperUri",
+            "columnName": "wallpaper_uri",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "readReceipts",
+            "columnName": "read_receipts",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "typingIndicators",
+            "columnName": "typing_indicators",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "blocked",
+            "columnName": "blocked",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        }
+      },
+      {
+        "tableName": "messages",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `chat_id` TEXT NOT NULL, `kind` TEXT NOT NULL, `body` TEXT NOT NULL, `detail` TEXT, `missed` INTEGER, `mine` INTEGER NOT NULL, `sender_id` TEXT, `status` TEXT, `reply_to_id` TEXT, `reply_to_name` TEXT, `reply_to_text` TEXT, `audio_uri` TEXT, `audio_duration` REAL, `audio_waveform` TEXT, `payload` TEXT, `reactions` TEXT, `edited` INTEGER NOT NULL, `created_at` INTEGER NOT NULL, `handle` TEXT, `part` INTEGER NOT NULL, `reply_to_part` TEXT, `service` TEXT, `effect` TEXT, `subject` TEXT, `error_text` TEXT, `wire_guid` TEXT NOT NULL DEFAULT '', `attachment_token` TEXT, `verification_failed` INTEGER NOT NULL DEFAULT 0, `receipts` TEXT, PRIMARY KEY(`id`), FOREIGN KEY(`chat_id`) REFERENCES `chats`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "chatId",
+            "columnName": "chat_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "kind",
+            "columnName": "kind",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "body",
+            "columnName": "body",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "detail",
+            "columnName": "detail",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "missed",
+            "columnName": "missed",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "mine",
+            "columnName": "mine",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "senderId",
+            "columnName": "sender_id",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "status",
+            "columnName": "status",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "replyToId",
+            "columnName": "reply_to_id",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "replyToName",
+            "columnName": "reply_to_name",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "replyToText",
+            "columnName": "reply_to_text",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "audioUri",
+            "columnName": "audio_uri",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "audioDuration",
+            "columnName": "audio_duration",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "audioWaveform",
+            "columnName": "audio_waveform",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "payload",
+            "columnName": "payload",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "reactions",
+            "columnName": "reactions",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "edited",
+            "columnName": "edited",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAt",
+            "columnName": "created_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "handle",
+            "columnName": "handle",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "part",
+            "columnName": "part",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "replyToPart",
+            "columnName": "reply_to_part",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "service",
+            "columnName": "service",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "effect",
+            "columnName": "effect",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "subject",
+            "columnName": "subject",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "errorText",
+            "columnName": "error_text",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "wireGuid",
+            "columnName": "wire_guid",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": "''"
+          },
+          {
+            "fieldPath": "attachmentToken",
+            "columnName": "attachment_token",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "verificationFailed",
+            "columnName": "verification_failed",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "receipts",
+            "columnName": "receipts",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_messages_chat_id_created_at",
+            "unique": false,
+            "columnNames": [
+              "chat_id",
+              "created_at"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_messages_chat_id_created_at` ON `${TABLE_NAME}` (`chat_id`, `created_at`)"
+          },
+          {
+            "name": "index_messages_wire_guid_part",
+            "unique": false,
+            "columnNames": [
+              "wire_guid",
+              "part"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_messages_wire_guid_part` ON `${TABLE_NAME}` (`wire_guid`, `part`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "chats",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "chat_id"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '2a1d5e0ce631c2f00423023e4d4055b9')"
+    ]
+  }
+}

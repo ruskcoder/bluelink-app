@@ -1,0 +1,25 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<!-- one arrow: 70° arc ending in a chevron head at 3 o'clock, travelling counterclockwise -->
+<g id="arrow" stroke="#14306E" stroke-width="28" stroke-linecap="round" stroke-linejoin="round">
+<path d="M628.29 831.5A340 340 0 0 0 852 512"/>
+<path d="M808 558L852 512L896 558"/>
+</g>
+<!-- tail from Vector (1).svg, closed off inside the circle -->
+<path id="tail" d="M448.069 222.333C441.903 227.644 440.5 236.66 440.5 244C440.5 249.433 442.773 255.891 445.349 261.268C446.64 263.964 448.016 266.406 449.239 268.334C450.454 270.248 451.541 271.693 452.258 272.365C453.461 273.492 453.846 274.952 453.776 276.337C453.706 277.738 453.171 279.007 452.614 279.682C452 280.425 450.356 281.5 448 281.5C447.001 281.5 445.563 281.16 443.741 280.5C441.932 279.845 439.788 278.892 437.394 277.705C432.606 275.332 426.848 272.04 420.812 268.373C408.744 261.039 395.598 252.222 386.945 246.294C380.5 241.9 370 238.8 360 236.6L386 150Z"/>
+</defs>
+
+<rect width="1024" height="1024" fill="#E4ECFA"/>
+
+<use href="#arrow" transform="rotate(35 512 512)"/>
+<use href="#arrow" transform="rotate(-55 512 512)"/>
+<use href="#arrow" transform="rotate(-145 512 512)"/>
+<use href="#arrow" transform="rotate(125 512 512)"/>
+
+<g transform="translate(512 512) scale(2.1) translate(-386 -120)">
+<!-- background-coloured outline cuts the gap where the arrow passes under the tail -->
+<use href="#tail" stroke="#E4ECFA" stroke-width="13" stroke-linejoin="round"/>
+<use href="#tail" fill="#2B6FF0"/>
+<circle cx="386" cy="120" r="120" fill="#2B6FF0"/>
+</g>
+</svg>

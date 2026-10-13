@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Direct share: the conversations the app publishes as dynamic shortcuts (see MessageNotifications)
+    show up in the system share sheet's top row, and picking one opens ShareActivity with that
+    conversation already chosen. The category has to match the one those shortcuts declare.
+-->
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <share-target android:targetClass="com.ruskcoder.messages.ShareActivity">
+        <data android:mimeType="text/*" />
+        <data android:mimeType="image/*" />
+        <data android:mimeType="video/*" />
+        <data android:mimeType="audio/*" />
+        <data android:mimeType="application/*" />
+        <category android:name="android.shortcut.conversation" />
+    </share-target>
+</shortcuts>

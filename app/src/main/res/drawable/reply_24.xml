@@ -1,0 +1,25 @@
+<!--
+  Material Symbols "reply", 24dp / weight 400 / grade 0 / optical size 24.
+
+  Shipped as a drawable rather than taken from `androidx.compose.material.icons`, because that
+  library is the *old* Material Icons set: its `Reply` is the rounded, tapering arrow from 2014, and
+  the Google Messages bubble it sits beside is drawn to the current Material Symbols shapes. The two
+  next to each other read as two different apps' idea of the same arrow.
+
+  Google Fonts ships these on a 960x960 grid with the path in the -960..0 band, which is above an
+  Android vector's canvas — hence the group translation, which is what the official Android export
+  does too. Left as its own file rather than converted to an ImageVector by hand so it stays exactly
+  what Google publishes, and can be replaced by re-downloading it.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="960"
+    android:viewportHeight="960"
+    android:autoMirrored="true">
+    <group android:translateY="960">
+        <path
+            android:fillColor="#FFFFFFFF"
+            android:pathData="M760,-200v-80q0,-83 -58.5,-141.5T560,-480H273l144,144 -57,56 -240,-240 240,-240 57,56 -144,144h287q116,0 198,82t82,198v80h-80Z" />
+    </group>
+</vector>

@@ -1,0 +1,21 @@
+[package]
+name = "open-absinthe"
+version = "1.0.0"
+edition = "2021"
+
+[dependencies]
+serde = { version = "1.0.219", features = ["derive"] }
+# Only pulled in by the `emulator` feature, which needs sources this repository does not carry.
+# Android links a prebuilt host library; building Unicorn's QEMU-derived C core through cargo does
+# not configure the NDK sysroot correctly.
+unicorn-engine = { version = "=2.1.5", optional = true, default-features = false, features = ["arch_x86", "dynamic_linkage"] }
+
+[features]
+serde = []
+# The real validation backend. Its sources live outside this repository, in a `private/` checkout at
+# the repository root; without them this crate is a stub and every validation call reports
+# "unavailable". Gradle switches this on by itself when that checkout is present.
+emulator = ["dep:unicorn-engine"]
+
+[patch.crates-io]
+unicorn-engine-sys = { path = "../../vendor/unicorn-engine-sys" }

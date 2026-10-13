@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Received attachments are downloaded into internal storage, so sharing one out of the app means
+    handing another process a content:// uri it is granted read access to. A raw file:// uri throws
+    FileUriExposedException instead.
+-->
+<paths>
+    <files-path
+        name="imessage_attachments"
+        path="imessage/attachments/" />
+    <cache-path
+        name="staged_attachments"
+        path="." />
+</paths>

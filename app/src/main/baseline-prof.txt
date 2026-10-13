@@ -1,0 +1,28 @@
+# Ahead-of-time compilation hints for the code every session runs.
+#
+# Without a profile, the first launch and the first scroll through a conversation run interpreted
+# and JIT-compiled Compose code, which is where the first-open jank comes from. ProfileInstaller
+# applies these rules on install so that code is compiled up front.
+#
+# Written by hand to cover startup, the conversation list, a conversation, and the data layer
+# behind them. A generated profile (see the :baselineprofile module) is more precise; these wildcard
+# rules are the floor for a build that has not had one generated.
+
+HSPLcom/ruskcoder/messages/MessagesApp;->**(**)**
+HSPLcom/ruskcoder/messages/AppContainer;->**(**)**
+HSPLcom/ruskcoder/messages/MainActivity;->**(**)**
+HSPLcom/ruskcoder/messages/data/**;->**(**)**
+HSPLcom/ruskcoder/messages/util/**;->**(**)**
+HSPLcom/ruskcoder/messages/ui/navigation/**;->**(**)**
+HSPLcom/ruskcoder/messages/ui/theme/**;->**(**)**
+HSPLcom/ruskcoder/messages/ui/screens/setup/SetupGateKt**;->**(**)**
+HSPLcom/ruskcoder/messages/ui/screens/chatlist/**;->**(**)**
+HSPLcom/ruskcoder/messages/ui/screens/chat/**;->**(**)**
+HSPLcom/ruskcoder/messages/ui/components/**;->**(**)**
+Lcom/ruskcoder/messages/**;
+
+# The Compose runtime and foundation paths a scrolling list exercises.
+HSPLandroidx/compose/runtime/**;->**(**)**
+HSPLandroidx/compose/ui/**;->**(**)**
+HSPLandroidx/compose/foundation/lazy/**;->**(**)**
+HSPLandroidx/compose/foundation/text/**;->**(**)**

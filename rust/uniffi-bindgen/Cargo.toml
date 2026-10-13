@@ -1,0 +1,15 @@
+# Host-only codegen binary, deliberately kept out of `imessage-core`.
+#
+# uniffi's bindgen can read the exported metadata straight out of a built cdylib, so this never
+# needs to link the real crate. Building it here instead of as a `[[bin]]` on `imessage-core`
+# means generating Kotlin bindings does not require a *host* build of rustpush — which on Windows
+# would drag in vendored OpenSSL, perl and nasm for no reason.
+[package]
+name = "uniffi-bindgen"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# Rev must stay pinned to the same commit `imessage-core` builds its scaffolding against,
+# or the generated Kotlin will not match the symbols in the .so.
+uniffi = { git = "https://github.com/mozilla/uniffi-rs", rev = "c5a437e9f34f9d46c097848810bf6111cfa13a9f", features = ["cli"] }
