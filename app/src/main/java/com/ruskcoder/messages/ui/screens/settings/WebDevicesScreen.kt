@@ -12,7 +12,6 @@ import androidx.compose.material.icons.outlined.Computer
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.QrCodeScanner
 import androidx.compose.material.icons.rounded.Close
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -31,6 +30,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.ruskcoder.messages.ui.components.AppDialog
 import com.ruskcoder.messages.ui.components.settings.SettingsBlock
 import com.ruskcoder.messages.ui.components.settings.SettingsGroup
 import com.ruskcoder.messages.ui.components.settings.SettingsPage
@@ -129,17 +129,17 @@ fun WebDevicesScreen(bridge: WebBridge, onBack: () -> Unit) {
     }
 
     removing?.let { pairing ->
-        AlertDialog(
-            onDismissRequest = { removing = null },
-            title = { Text("Unlink ${pairing.name}?") },
-            text = { Text("That browser will be signed out and can't use this phone until it's linked again.") },
-            confirmButton = {
+        AppDialog(
+            title = "Unlink ${pairing.name}?",
+            message = "That browser will be signed out and can't use this phone until it's linked again.",
+            onDismiss = { removing = null },
+            buttons = {
+                TextButton(onClick = { removing = null }) { Text("Cancel", color = Color.White) }
                 TextButton(onClick = {
                     bridge.remove(pairing.room)
                     removing = null
-                }) { Text("Unlink") }
+                }) { Text("Unlink", color = Color.White) }
             },
-            dismissButton = { TextButton(onClick = { removing = null }) { Text("Cancel") } },
         )
     }
 }

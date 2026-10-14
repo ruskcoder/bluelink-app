@@ -22,7 +22,7 @@ import com.ruskcoder.messages.data.model.textRuns
 import kotlinx.serialization.Serializable
 
 /**
- * What the browser is sent. Mirrors `packages/protocol/src/types.ts` in messages-web.
+ * What the browser is sent. Mirrors `src/protocol/types.ts` in messages-web.
  *
  * Deliberately flatter than the app's own models: the browser draws from these and nothing else,
  * so anything it would have to derive — a sender's display name, a one-line summary of a photo,
@@ -54,6 +54,10 @@ data class WireChat(
     val typingIndicators: Boolean,
     val blocked: Boolean,
     val snoozedUntil: Long,
+    val archived: Boolean = false,
+    /** Whether this conversation has its own answer for the switch, rather than following Settings. */
+    val readReceiptsSet: Boolean = false,
+    val typingIndicatorsSet: Boolean = false,
 )
 
 @Serializable
@@ -132,7 +136,7 @@ data class WireMessage(
 data class WireContact(val id: String, val name: String, val address: String, val color: String, val initials: String)
 
 @Serializable
-data class WireHit(val messageId: String, val chatId: String, val text: String, val createdAt: Long)
+data class WireHit(val messageId: String, val chatId: String, val text: String, val createdAt: Long, val mine: Boolean = false)
 
 private fun DeliveryStatus.wire(): String = name.lowercase()
 
@@ -161,6 +165,9 @@ internal fun Chat.toWire(settings: Settings) = WireChat(
     typingIndicators = typingIndicatorsOn(settings),
     blocked = blocked,
     snoozedUntil = snoozedUntil,
+    archived = archived,
+    readReceiptsSet = readReceipts != null,
+    typingIndicatorsSet = typingIndicators != null,
 )
 
 /** [nameOf] turns a handle into the name the phone would show for it. */
@@ -243,7 +250,7 @@ internal fun Attachment.toWire(): WireAttachment = when (this) {
 internal fun Contact.toWire(): WireContact? =
     about?.takeIf { it.isNotBlank() }?.let { WireContact(id, name, it, color, initials) }
 
-internal fun MessageHit.toWire() = WireHit(messageId, chatId, text.take(300), createdAt)
+internal fun MessageHit.toWire() = WireHit(messageId, chatId, text.take(300), createdAt, mine)
 
 /** Keeps one pathological message from pushing a thread snapshot past the relay's frame cap. */
 private const val MAX_TEXT = 20_000

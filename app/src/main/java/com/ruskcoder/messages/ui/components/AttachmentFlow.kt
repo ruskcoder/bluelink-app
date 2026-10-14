@@ -12,7 +12,6 @@ import android.webkit.MimeTypeMap
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -21,6 +20,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
@@ -294,24 +294,22 @@ fun rememberAttachmentFlow(
     }
 
     if (askingKind) {
-        AlertDialog(
-            onDismissRequest = {
+        AppDialog(
+            title = "Gallery",
+            message = "Choose from your photos or your videos.",
+            onDismiss = {
                 askingKind = false
                 flow?.deliver(null)
             },
-            title = { Text("Gallery") },
-            text = { Text("Choose from your photos or your videos.") },
-            confirmButton = {
-                TextButton(onClick = {
-                    askingKind = false
-                    openGallery(GalleryKind.VIDEOS)
-                }) { Text("Videos") }
-            },
-            dismissButton = {
+            buttons = {
                 TextButton(onClick = {
                     askingKind = false
                     openGallery(GalleryKind.PHOTOS)
-                }) { Text("Photos") }
+                }) { Text("Photos", color = Color.White) }
+                TextButton(onClick = {
+                    askingKind = false
+                    openGallery(GalleryKind.VIDEOS)
+                }) { Text("Videos", color = Color.White) }
             },
         )
     }

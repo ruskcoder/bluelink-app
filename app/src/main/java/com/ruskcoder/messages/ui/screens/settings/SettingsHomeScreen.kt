@@ -105,7 +105,6 @@ fun SettingsHomeScreen(
             SettingsRow(
                 icon = Icons.Outlined.Wifi,
                 title = "Connection",
-                description = "Status, background delivery and reconnecting",
                 chevron = true,
                 onClick = { onNavigate("connection") },
             )

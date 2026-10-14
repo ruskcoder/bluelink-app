@@ -64,31 +64,6 @@ import com.ruskcoder.messages.util.formatReadTime
  * last bubble in the thread. Ported from `delivery-status.tsx`.
  */
 
-/**
- * Where the Apple receipt sits under its bubble: in from the trailing edge, and up into the band
- * the tail hangs through — close enough to read as hanging off the tail, far enough not to crowd
- * it.
- *
- * The rise is an offset and not padding on purpose: it moves the words without giving the line back
- * any of its height, so nothing above it shifts.
- *
- * One pair of numbers whether or not the bubble above has a tail. Tucking it further under a tailed
- * one looked right in isolation and wrong beside a run, where a line that moved depending on which
- * bubble it belonged to read as a line that could not settle.
- */
-private val AppleReceiptInset = BubbleRowInset + 6.dp
-private val AppleReceiptRise = 4.dp
-
-/**
- * The extra nudge an Apple receipt gets when the bubble above it has a tail — and only then.
- *
- * Both are *on top of* [AppleReceiptRise] and [AppleReceiptInset]: [TailedReceiptRise] lifts the line
- * further up and [TailedReceiptInward] slides it further in from the trailing edge, towards the
- * middle of the screen. Set either to 0.dp to switch that nudge off; a bubble without a tail never
- * gets them.
- */
-val TailedReceiptRise = 20.dp
-val TailedReceiptInward = 20.dp
 
 /**
  * The type size every Apple caption is set at — the receipt, the tapped time, the failure.
@@ -413,8 +388,6 @@ fun AppleReceipt(
      * epoch millis; null falls back to [time] for a receipt that kept none.
      */
     readAt: Long? = null,
-    /** The bubble above carries a tail, so the line takes [TailedReceiptRise] and [TailedReceiptInward] on top. */
-    tailed: Boolean = false,
 ) {
     // The state is the thing being reported, so it carries the weight. The time beside it is a
     // detail hanging off that word rather than a second announcement, and printing the pair at one
@@ -429,13 +402,7 @@ fun AppleReceipt(
         label,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         fontSize = AppleCaptionSize,
-        // Tucked in under the tail rather than squared off with the bubble's trailing edge: in off
-        // that edge, and lifted into the band the tail hangs through. The rise is an offset and not
-        // padding on purpose — it moves the words without giving the line back any of its height,
-        // so nothing above it shifts.
-        modifier = modifier
-            .padding(top = 1.dp, end = AppleReceiptInset + if (tailed) TailedReceiptInward else 0.dp)
-            .offset(y = -(AppleReceiptRise + if (tailed) TailedReceiptRise else 0.dp)),
+        modifier = modifier.padding(top = 1.dp, end = BubbleRowInset),
     )
 }
 
@@ -462,21 +429,16 @@ fun TappedStatusLine(
     quietly: Boolean = false,
     /** Apple's line only: when the message was read. See [AppleReceipt]. */
     readAt: Long? = null,
-    /** Apple's line only: see [AppleReceipt]. */
-    tailed: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
-    // Flush with whichever bubble edge the line hangs off, the way the standing receipt is — and,
-    // under an Apple tail, in and up by the same nudge the receipt takes.
-    val apple = bubbleType == BubbleStyle.APPLE
-    val edge = BubbleRowInset + if (apple && tailed) TailedReceiptInward else 0.dp
+    // Flush with whichever bubble edge the line hangs off, the way the standing receipt is.
     val inset = if (mine) {
-        Modifier.padding(top = 1.dp, end = edge)
+        Modifier.padding(top = 1.dp, end = BubbleRowInset)
     } else {
-        Modifier.padding(top = 1.dp, start = edge)
+        Modifier.padding(top = 1.dp, start = BubbleRowInset)
     }
     when {
-        mine && bubbleType == BubbleStyle.APPLE -> AppleReceipt(status, time, modifier, groupLabel, quietly, readAt, tailed)
+        mine && bubbleType == BubbleStyle.APPLE -> AppleReceipt(status, time, modifier, groupLabel, quietly, readAt)
         mine && bubbleType == BubbleStyle.GOOGLE -> GoogleReceipt(status, time, modifier, groupLabel, edited)
         // WhatsApp says it on the bubble itself, beside the clock — so the caption here is only
         // ever the bare time, the same as it is for an incoming message.
@@ -485,15 +447,7 @@ fun TappedStatusLine(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontSize = if (bubbleType == BubbleStyle.APPLE) AppleCaptionSize else 11.sp,
             fontWeight = FontWeight.Bold,
-            // Apple lifts its captions into the tail's band by the same rise the standing receipt and
-            // the "Edited" label use — without it the tapped time sat a few dip below them on the
-            // shared line.
-            modifier = modifier
-                .then(inset)
-                .then(
-                    if (apple) Modifier.offset(y = -(AppleReceiptRise + if (tailed) TailedReceiptRise else 0.dp))
-                    else Modifier,
-                ),
+            modifier = modifier.then(inset),
         )
     }
 }
@@ -595,11 +549,10 @@ fun MessageMetaLabels(
     // Sat on the same line the receipt would be, by the same numbers — the two take turns in one
     // slot, and a label that sits a few dip off where the caption sits reads as the line moving.
     val rise = when (bubbleType) {
-        BubbleStyle.APPLE -> AppleReceiptRise
         BubbleStyle.GOOGLE -> GoogleReceiptRise
         else -> 0.dp
     }
-    val inset = if (bubbleType == BubbleStyle.APPLE) AppleReceiptInset else BubbleRowInset
+    val inset = BubbleRowInset
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
@@ -671,11 +624,10 @@ private val MetaIconSize = 12.dp
 fun MessageReplayLabel(bubbleType: BubbleStyle, mine: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val accent = useAppleBubbleColors(mine = true).background
     val rise = when (bubbleType) {
-        BubbleStyle.APPLE -> AppleReceiptRise
         BubbleStyle.GOOGLE -> GoogleReceiptRise
         else -> 0.dp
     }
-    val inset = if (bubbleType == BubbleStyle.APPLE) AppleReceiptInset else BubbleRowInset
+    val inset = BubbleRowInset
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier

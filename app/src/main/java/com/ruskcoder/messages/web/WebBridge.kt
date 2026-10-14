@@ -180,6 +180,7 @@ class WebBridge(
         private var keepalive: Job? = null
         private var chatsJob: Job? = null
         private var typingJob: Job? = null
+        private var settingsJob: Job? = null
         private var watchJob: Job? = null
 
         /**
@@ -298,6 +299,7 @@ class WebBridge(
             if (web) {
                 chatsJob = scope.launch { streamChats() }
                 typingJob = scope.launch { streamTyping() }
+                settingsJob = scope.launch { streamSettings() }
             } else {
                 stopStreaming()
             }
@@ -356,6 +358,20 @@ class WebBridge(
             }
         }
 
+        /**
+         * Settings as they change, so the page follows the phone's look without being reloaded.
+         *
+         * The chat list goes out again with them: each conversation's read-receipt and typing
+         * switches are resolved against Settings before they leave the phone.
+         */
+        @OptIn(FlowPreview::class)
+        private suspend fun streamSettings() {
+            settings.settings.drop(1).debounce(DEBOUNCE_MS).collect { current ->
+                sendEvent("settings", rpc.settingsSnapshot())
+                sendEvent("chats", appJson.encodeToJsonElement(ListSerializer(WireChat.serializer()), chats.chats.value.map { it.toWire(current) }))
+            }
+        }
+
         @OptIn(FlowPreview::class)
         private suspend fun streamChats() {
             // The browser asks for the list itself on arrival; this carries only what changes after.
@@ -391,9 +407,11 @@ class WebBridge(
         private fun stopStreaming() {
             chatsJob?.cancel()
             typingJob?.cancel()
+            settingsJob?.cancel()
             watchJob?.cancel()
             chatsJob = null
             typingJob = null
+            settingsJob = null
             watchJob = null
         }
 

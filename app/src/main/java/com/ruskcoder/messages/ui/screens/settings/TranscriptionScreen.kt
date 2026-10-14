@@ -14,7 +14,6 @@ import androidx.compose.material.icons.outlined.Bolt
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.CloudDownload
 import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material.icons.outlined.Wifi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -34,7 +33,6 @@ import com.ruskcoder.messages.transcribe.SpeechModelStore
 import com.ruskcoder.messages.ui.components.settings.SettingsGroup
 import com.ruskcoder.messages.ui.components.settings.SettingsPage
 import com.ruskcoder.messages.ui.components.settings.SettingsRow
-import com.ruskcoder.messages.ui.components.settings.SettingsToggle
 
 /**
  * Voice-message transcription: which model, whether it is here, and how it got here.
@@ -69,26 +67,12 @@ fun TranscriptionScreen(
                     onSelect = { settingsRepository.update { it.copy(speechModel = model) } },
                     onDownload = {
                         settingsRepository.update { it.copy(speechModel = model) }
-                        models.download(model, requireUnmetered = settings.speechModelWifiOnly)
+                        models.download(model, requireUnmetered = false)
                     },
                     onCancel = models::cancel,
                     onDelete = { models.delete(model) },
                 )
             }
-        }
-
-        SettingsGroup(
-        ) {
-            SettingsToggle(
-                icon = Icons.Outlined.Wifi,
-                title = "Download over Wi-Fi only",
-                checked = settings.speechModelWifiOnly,
-                onCheckedChange = { on ->
-                    settingsRepository.update { it.copy(speechModelWifiOnly = on) }
-                    // A refusal recorded under the old rule is not news under the new one.
-                    if (!on) models.clearFailure()
-                },
-            )
         }
 
         if (installed.isNotEmpty()) {

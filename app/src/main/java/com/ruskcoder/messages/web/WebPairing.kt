@@ -31,7 +31,7 @@ data class WebPairing(
     val pairedAt: Long,
 )
 
-/** What a browser's QR code says. See `packages/protocol/src/pairing.ts`. */
+/** What a browser's QR code says. See `src/protocol/pairing.ts` in messages-web. */
 internal data class WebPairingOffer(
     val relay: String,
     val room: String,

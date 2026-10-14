@@ -274,6 +274,9 @@ val cargoBuildRust by tasks.registering(Exec::class) {
 
     val ndkDir = resolveNdkDir()
     val unixPerlDir = resolveUnixPerlDir()
+    // A local copy for the same reason as `shouldBuild` above: `doFirst` must not reach back into
+    // the script for it.
+    val linkUnicorn = nativeNac
     val unicornLibDirsByTargetEnv = rustAbis.associate { abi ->
         val triple = rustAbiTriples[abi]
             ?: error("Unknown ABI '$abi'. Known: ${rustAbiTriples.keys.joinToString()}")
@@ -300,7 +303,7 @@ val cargoBuildRust by tasks.registering(Exec::class) {
         }
         // The patched system-binding crate links the prebuilt matching the Cargo target. This
         // avoids running bindgen/pkg-config or compiling Unicorn's C core during normal app builds.
-        if (nativeNac) {
+        if (linkUnicorn) {
             unicornLibDirsByTargetEnv.forEach { (name, path) -> environment(name, path) }
         }
     }

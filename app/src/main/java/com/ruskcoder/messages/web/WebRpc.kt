@@ -8,6 +8,23 @@ import com.ruskcoder.messages.data.model.Attachment
 import com.ruskcoder.messages.data.model.Chat
 import com.ruskcoder.messages.data.model.ChatIdentity
 import com.ruskcoder.messages.data.model.ChatThemeKey
+import com.ruskcoder.messages.data.model.BubbleStyle
+import com.ruskcoder.messages.data.model.DoubleTapAction
+import com.ruskcoder.messages.data.model.GalleryMode
+import com.ruskcoder.messages.data.model.MAX_TEXT_SCALE
+import com.ruskcoder.messages.data.model.MIN_TEXT_SCALE
+import com.ruskcoder.messages.data.model.MemberView
+import com.ruskcoder.messages.data.model.MultiMediaStyle
+import com.ruskcoder.messages.data.model.PageTransition
+import com.ruskcoder.messages.data.model.ReplyMode
+import com.ruskcoder.messages.data.model.WallpaperTint
+import com.ruskcoder.messages.data.model.MediaAutoDownload
+import com.ruskcoder.messages.data.model.MessageTimer
+import com.ruskcoder.messages.data.model.REACTION_EMOJI
+import com.ruskcoder.messages.data.model.Settings
+import com.ruskcoder.messages.data.model.Visibility
+import com.ruskcoder.messages.data.model.displayInitials
+import com.ruskcoder.messages.data.model.displayName
 import com.ruskcoder.messages.data.model.GroupMember
 import com.ruskcoder.messages.data.model.LOCAL_SENDER
 import com.ruskcoder.messages.data.model.Message
@@ -234,16 +251,17 @@ internal class WebRpc(
             JsonNull
         }
 
-        "settings.get" -> {
-            val s = settings.settings.value
-            buildJsonObject {
-                put("bubbleStyle", s.bubbleType.name)
-                put("reactionBar", JsonArray(s.reactionEmoji().map(::JsonPrimitive)))
-                put("wallpaperTint", s.wallpaperTint.name)
-                put("wallpaperPattern", s.wallpaperPattern)
-                put("textScale", s.textScale())
-                put("recentEmoji", JsonArray(RecentEmoji.load(context).map(::JsonPrimitive)))
-            }
+        "settings.get" -> settingsSnapshot()
+
+        "settings.set" -> {
+            val patch = p["patch"] as? JsonObject ?: throw WebRpcException("Missing patch")
+            settings.update { it.patched(patch) }
+            settingsSnapshot()
+        }
+
+        "profile.photo" -> {
+            val uri = settings.settings.value.profilePhotoUri ?: throw WebRpcException("No photo")
+            jpeg(media.thumbnail(Uri.parse(uri), "image/jpeg", PROFILE_SIDE))
         }
 
         "emoji.used" -> JsonArray(RecentEmoji.push(context, p.str("emoji")).map(::JsonPrimitive))
@@ -260,8 +278,11 @@ internal class WebRpc(
         "chat.mute" -> JsonNull.also { chats.setMuted(p.str("chatId"), p.bool("muted")) }
         "chat.delete" -> JsonNull.also { chats.deleteChat(p.str("chatId")) }
         "chat.block" -> JsonNull.also { chats.setBlocked(p.str("chatId"), p.bool("blocked")) }
-        "chat.readReceipts" -> JsonNull.also { chats.setReadReceipts(p.str("chatId"), p.bool("enabled")) }
-        "chat.typingIndicators" -> JsonNull.also { chats.setTypingIndicators(p.str("chatId"), p.bool("enabled")) }
+        // A missing or null `enabled` hands the switch back to Settings, as "Reset" does on the phone.
+        "chat.readReceipts" -> JsonNull.also { chats.setReadReceipts(p.str("chatId"), p.optBool("enabled")) }
+        "chat.typingIndicators" -> JsonNull.also { chats.setTypingIndicators(p.str("chatId"), p.optBool("enabled")) }
+        "chat.archive" -> JsonNull.also { chats.setArchived(p.str("chatId"), p.bool("archived")) }
+        "chats.clear" -> JsonNull.also { chats.clearChats() }
 
         "chat.theme" -> {
             val theme = ChatThemeKey.fromStorageKey(p.str("theme"))
@@ -429,6 +450,116 @@ internal class WebRpc(
         return buildJsonObject { put("chatId", identity.id) }
     }
 
+    /**
+     * Every setting the browser draws from or offers, in one object.
+     *
+     * The whole of it rather than the handful a thread needs: the web's Settings pages are the
+     * phone's own, row for row, so they read the same values the phone's do.
+     */
+    fun settingsSnapshot(): JsonElement {
+        val s = settings.settings.value
+        return buildJsonObject {
+            put("profileName", s.displayName())
+            put("profileInitials", s.displayInitials())
+            put("hasProfilePhoto", !s.profilePhotoUri.isNullOrBlank())
+            put("device", deviceName())
+            put("mode", s.mode.name)
+            put("bubbleStyle", s.bubbleType.name)
+            put("reactionBar", JsonArray(s.reactionEmoji().map(::JsonPrimitive)))
+            put("reactionSlots", JsonArray(s.reactionBar.map(::JsonPrimitive)))
+            put("wallpaperTint", s.wallpaperTint.name)
+            put("wallpaperPattern", s.wallpaperPattern)
+            put("textScale", s.textScale())
+            put("appTheme", s.appTheme.storageKey)
+            put("appThemeHue", s.appThemeHue)
+            put("memberView", s.memberView.name)
+            put("replyMode", s.replyMode.name)
+            put("doubleTapAction", s.doubleTapAction.name)
+            put("longPressMenu", s.longPressMenu)
+            put("pageTransition", s.pageTransition.name)
+            put("multiMediaStyle", s.multiMediaStyle.name)
+            put("galleryMode", s.galleryMode.name)
+            put("notifications", s.notifications)
+            put("readReceipts", s.readReceipts)
+            put("typingIndicators", s.typingIndicators)
+            put("swipeTimestamps", s.swipeTimestamps)
+            put("enterToSend", s.enterToSend)
+            put("haptics", s.haptics)
+            put("autoSaveMedia", s.autoSaveMedia)
+            put("linkPreviews", s.linkPreviews)
+            put("appLock", s.appLock)
+            put("appLockTimeoutSeconds", s.appLockTimeoutSeconds)
+            put("hideNotificationContent", s.hideNotificationContent)
+            put("lastSeenVisibility", s.lastSeenVisibility.name)
+            put("profilePhotoVisibility", s.profilePhotoVisibility.name)
+            put("aboutVisibility", s.aboutVisibility.name)
+            put("messageTimer", s.messageTimer.name)
+            put("mediaAutoDownload", s.mediaAutoDownload.name)
+            put("securityNotifications", s.securityNotifications)
+            put("speechModelWifiOnly", s.speechModelWifiOnly)
+            put("recentEmoji", JsonArray(RecentEmoji.load(context).map(::JsonPrimitive)))
+        }
+    }
+
+    /**
+     * The settings a browser may change, applied one key at a time.
+     *
+     * Appearance included: a browser's Appearance page is the phone's own, and a choice made on
+     * either is the choice. What a browser has no business changing — the profile, the lock, the
+     * things that are really Android permissions — is simply not named below, and anything not
+     * named is ignored rather than refused, so an older phone and a newer page still get along.
+     */
+    private fun Settings.patched(patch: JsonObject): Settings {
+        var next = this
+        fun flag(name: String, apply: (Settings, Boolean) -> Settings) {
+            (patch[name] as? JsonPrimitive)?.booleanOrNull?.let { next = apply(next, it) }
+        }
+        fun <E : Enum<E>> choice(name: String, values: List<E>, apply: (Settings, E) -> Settings) {
+            val picked = (patch[name] as? JsonPrimitive)?.contentOrNull ?: return
+            values.firstOrNull { it.name == picked }?.let { next = apply(next, it) }
+        }
+        flag("notifications") { s, v -> s.copy(notifications = v) }
+        flag("readReceipts") { s, v -> s.copy(readReceipts = v) }
+        flag("typingIndicators") { s, v -> s.copy(typingIndicators = v) }
+        flag("swipeTimestamps") { s, v -> s.copy(swipeTimestamps = v) }
+        flag("enterToSend") { s, v -> s.copy(enterToSend = v) }
+        flag("haptics") { s, v -> s.copy(haptics = v) }
+        flag("autoSaveMedia") { s, v -> s.copy(autoSaveMedia = v) }
+        flag("longPressMenu") { s, v -> s.copy(longPressMenu = v) }
+        flag("linkPreviews") { s, v -> s.copy(linkPreviews = v) }
+        flag("hideNotificationContent") { s, v -> s.copy(hideNotificationContent = v) }
+        flag("securityNotifications") { s, v -> s.copy(securityNotifications = v) }
+        flag("speechModelWifiOnly") { s, v -> s.copy(speechModelWifiOnly = v) }
+        flag("wallpaperPattern") { s, v -> s.copy(wallpaperPattern = v) }
+        choice("bubbleStyle", BubbleStyle.entries) { s, v -> s.copy(bubbleType = v) }
+        choice("wallpaperTint", WallpaperTint.entries) { s, v -> s.copy(wallpaperTint = v) }
+        choice("memberView", MemberView.entries) { s, v -> s.copy(memberView = v) }
+        choice("replyMode", ReplyMode.entries) { s, v -> s.copy(replyMode = v) }
+        // `NONE` is no longer offered — see AppearanceScreen — so it is not accepted from here either.
+        choice("pageTransition", PageTransition.entries.filter { it != PageTransition.NONE }) { s, v -> s.copy(pageTransition = v) }
+        choice("multiMediaStyle", MultiMediaStyle.entries) { s, v -> s.copy(multiMediaStyle = v) }
+        choice("galleryMode", GalleryMode.entries) { s, v -> s.copy(galleryMode = v) }
+        (patch["appTheme"] as? JsonPrimitive)?.contentOrNull?.let { key ->
+            val hue = (patch["appThemeHue"] as? JsonPrimitive)?.floatOrNull ?: next.appThemeHue
+            next = next.copy(appTheme = ChatThemeKey.fromStorageKey(key), appThemeHue = hue.mod(360f))
+        }
+        (patch["textScale"] as? JsonPrimitive)?.floatOrNull?.let { scale ->
+            next = next.copy(messageTextScale = scale.coerceIn(MIN_TEXT_SCALE, MAX_TEXT_SCALE))
+        }
+        choice("doubleTapAction", DoubleTapAction.entries) { s, v -> s.copy(doubleTapAction = v) }
+        choice("lastSeenVisibility", Visibility.entries) { s, v -> s.copy(lastSeenVisibility = v) }
+        choice("profilePhotoVisibility", Visibility.entries) { s, v -> s.copy(profilePhotoVisibility = v) }
+        choice("aboutVisibility", Visibility.entries) { s, v -> s.copy(aboutVisibility = v) }
+        choice("messageTimer", MessageTimer.entries) { s, v -> s.copy(messageTimer = v) }
+        choice("mediaAutoDownload", MediaAutoDownload.entries) { s, v -> s.copy(mediaAutoDownload = v) }
+        (patch["appLockTimeoutSeconds"] as? JsonPrimitive)?.intOrNull?.let { next = next.copy(appLockTimeoutSeconds = it.coerceAtLeast(0)) }
+        // The bar keeps its fixed length and its holes — see `EMPTY_REACTION_SLOT`.
+        (patch["reactionSlots"] as? JsonArray)?.mapNotNull { (it as? JsonPrimitive)?.contentOrNull }?.let { slots ->
+            if (slots.size == REACTION_EMOJI.size) next = next.copy(reactionBar = slots)
+        }
+        return next
+    }
+
     /** Copied somewhere permanent: a wallpaper outlives the upload cache it arrived in. */
     private suspend fun setWallpaper(chat: Chat, upload: WebMedia.Upload) = withContext(Dispatchers.IO) {
         val dir = File(context.filesDir, "web-wallpapers").apply { mkdirs() }
@@ -550,6 +681,7 @@ internal class WebRpc(
     private fun JsonObject.str(name: String): String = optStr(name) ?: throw WebRpcException("Missing $name")
     private fun JsonObject.optStr(name: String): String? = (this[name] as? JsonPrimitive)?.contentOrNull
     private fun JsonObject.bool(name: String): Boolean = (this[name] as? JsonPrimitive)?.booleanOrNull ?: false
+    private fun JsonObject.optBool(name: String): Boolean? = (this[name] as? JsonPrimitive)?.booleanOrNull
     private fun JsonObject.limit(): Int = (this["limit"]?.jsonPrimitive?.intOrNull ?: DEFAULT_LIMIT).coerceIn(1, MAX_LIMIT)
 
     companion object {
@@ -561,6 +693,7 @@ internal class WebRpc(
         private const val SEARCH_LIMIT = 50
         private const val CHAT_SEARCH_LIMIT = 1000
         private const val PHOTO_SIDE = 160
+        private const val PROFILE_SIDE = 256
         private const val WALLPAPER_SIDE = 1600
 
         fun deviceName(): String = Build.MODEL?.takeIf { it.isNotBlank() } ?: "Android phone"

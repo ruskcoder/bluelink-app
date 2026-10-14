@@ -1,6 +1,8 @@
 package com.ruskcoder.messages.ui.screens.settings
 
 import android.content.Intent
+import android.net.Uri
+import android.provider.MediaStore
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -11,11 +13,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Devices
-import androidx.compose.material.icons.filled.PersonRemove
-import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.outlined.Badge
-import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.HideImage
 import androidx.compose.material.icons.outlined.GppGood
 import androidx.compose.material.icons.outlined.Message
@@ -40,8 +38,10 @@ import com.ruskcoder.messages.data.model.USER_NAME
 import com.ruskcoder.messages.data.model.displayInitials
 import com.ruskcoder.messages.data.model.displayName
 import com.ruskcoder.messages.imessage.IMessageService
-import com.ruskcoder.messages.imessage.PhoneRegistration
+import java.io.File
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import com.ruskcoder.messages.ui.components.Avatar
 import com.ruskcoder.messages.ui.components.settings.SettingsGroup
 import com.ruskcoder.messages.ui.components.settings.SettingsPage
@@ -54,8 +54,7 @@ import com.ruskcoder.messages.ui.components.dialogFieldColors
 
 /**
  * Ported from `settings/account.tsx`, where the whole page was cosmetic. The two switches now hold
- * a real stored preference; the rows below them belong to an account service this app doesn't have,
- * so they say so when tapped rather than looking like buttons that swallowed the press.
+ * a real stored preference.
  */
 @Composable
 fun AccountScreen(
@@ -65,11 +64,11 @@ fun AccountScreen(
     onBack: () -> Unit,
 ) {
     val settings by settingsRepository.settings.collectAsStateWithLifecycle()
-    var unavailable by remember { mutableStateOf<String?>(null) }
     var editingName by remember { mutableStateOf(false) }
     var nameDraft by remember { mutableStateOf("") }
 
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     val pickPhoto = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
         if (uri != null) {
             // Persisted, or the uri stops resolving the next time the process starts and the avatar
@@ -79,6 +78,40 @@ fun AccountScreen(
             }
             settingsRepository.update { it.copy(profilePhotoUri = uri.toString()) }
         }
+    }
+    // The gallery app, for devices with no system photo picker: `PickVisualMedia` falls back to the
+    // files browser there, which is not where anyone keeps their photographs. A gallery pick is
+    // only readable for as long as this process lives, so the picture is copied in rather than
+    // remembered by address.
+    val pickFromGallery = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        val uri = result.data?.data ?: return@rememberLauncherForActivityResult
+        scope.launch {
+            val copy = withContext(Dispatchers.IO) {
+                runCatching {
+                    val target = File(context.filesDir, "profile_photo_${System.currentTimeMillis()}")
+                    context.contentResolver.openInputStream(uri)!!.use { input ->
+                        target.outputStream().use { input.copyTo(it) }
+                    }
+                    // Named by time so the avatar reloads; the ones before it are of no use now.
+                    context.filesDir.listFiles { file -> file.name.startsWith("profile_photo_") && file != target }
+                        ?.forEach { it.delete() }
+                    Uri.fromFile(target).toString()
+                }.getOrNull()
+            }
+            if (copy != null) settingsRepository.update { it.copy(profilePhotoUri = copy) }
+        }
+    }
+    fun choosePhoto() {
+        if (ActivityResultContracts.PickVisualMedia.isPhotoPickerAvailable(context)) {
+            pickPhoto.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+            return
+        }
+        val launched = runCatching {
+            pickFromGallery.launch(Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI))
+        }.isSuccess
+        // No gallery app to answer it: `GET_CONTENT` without `CATEGORY_OPENABLE`, so whatever
+        // gallery there is gets offered alongside the files browser.
+        if (!launched) runCatching { pickFromGallery.launch(Intent(Intent.ACTION_GET_CONTENT).setType("image/*")) }
     }
 
     // Read once on entry rather than observed: this is disk state that only changes by going
@@ -90,30 +123,6 @@ fun AccountScreen(
         appleId = runCatching { imessageService.savedAppleId() }.getOrNull()
     }
 
-    // The number registered with iMessage, read from the registration itself — so the switch
-    // follows what Apple has, not what was last asked for.
-    val scope = rememberCoroutineScope()
-    var phoneNumbers by remember { mutableStateOf<List<String>>(emptyList()) }
-    var phoneBusy by remember { mutableStateOf(false) }
-    var phoneError by remember { mutableStateOf<String?>(null) }
-    LaunchedEffect(registered) {
-        if (registered) phoneNumbers = PhoneRegistration.registeredNumbers(imessageService)
-    }
-    fun setPhone(on: Boolean) {
-        phoneBusy = true
-        scope.launch {
-            runCatching {
-                if (on) PhoneRegistration.enable(context, imessageService) else PhoneRegistration.disable(context, imessageService)
-            }.onFailure { phoneError = it.message ?: "Something went wrong" }
-            phoneNumbers = PhoneRegistration.registeredNumbers(imessageService)
-            phoneBusy = false
-        }
-    }
-    val smsPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { granted ->
-        if (PhoneRegistration.hasPermissions(context)) setPhone(true)
-        else phoneError = "Verifying your number needs permission to send and receive texts."
-    }
-
     SettingsPage(title = "Account", onBack = onBack) {
         SettingsGroup(
             title = "You",
@@ -123,9 +132,7 @@ fun AccountScreen(
                 horizontalArrangement = Arrangement.spacedBy(14.dp),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable {
-                        pickPhoto.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
-                    }
+                    .clickable { choosePhoto() }
                     .padding(16.dp),
             ) {
                 Avatar(
@@ -169,27 +176,6 @@ fun AccountScreen(
                 description = appleId ?: if (registered) null else "Tap to sign in",
                 onClick = onOpenSetup,
             )
-            if (registered) {
-                SettingsToggle(
-                    icon = Icons.Filled.Phone,
-                    title = "Use phone number",
-                    description = when {
-                        phoneBusy && phoneNumbers.isEmpty() -> "Verifying with Apple…"
-                        phoneBusy -> "Removing…"
-                        phoneNumbers.isNotEmpty() -> "${phoneNumbers.joinToString { it.removePrefix("tel:") }} · iPhones text it as iMessage"
-                        else -> "Let iPhones reach you by your number, not just your email"
-                    },
-                    checked = phoneNumbers.isNotEmpty(),
-                    enabled = !phoneBusy,
-                    onCheckedChange = { on ->
-                        when {
-                            !on -> setPhone(false)
-                            PhoneRegistration.canEnable(context) -> setPhone(true)
-                            else -> smsPermission.launch(PhoneRegistration.permissions)
-                        }
-                    },
-                )
-            }
         }
 
         SettingsGroup(title = "Security") {
@@ -204,30 +190,6 @@ fun AccountScreen(
                 title = "Two-step verification",
                 checked = settings.twoStepVerification,
                 onCheckedChange = { v -> settingsRepository.update { it.copy(twoStepVerification = v) } },
-            )
-            SettingsRow(
-                icon = Icons.Filled.Devices,
-                title = "Linked devices",
-                description = "No devices linked",
-                onClick = { unavailable = "Linking a second device needs an account service, which this app doesn't have — everything lives on this phone." },
-            )
-        }
-        SettingsGroup(title = "Account") {
-            SettingsRow(
-                icon = Icons.Filled.Phone,
-                title = "Change number",
-                onClick = { unavailable = "There's no phone number registered to change — this build isn't backed by an account." },
-            )
-            SettingsRow(
-                icon = Icons.Outlined.Download,
-                title = "Request account info",
-                onClick = { unavailable = "Everything this app holds is already on this device. Storage and data shows how much of it there is." },
-            )
-            SettingsRow(
-                icon = Icons.Filled.PersonRemove,
-                title = "Delete account",
-                destructive = true,
-                onClick = { unavailable = "There's no account to delete. To wipe what's on this phone, use Clear data under Storage and data." },
             )
         }
     }
@@ -255,22 +217,6 @@ fun AccountScreen(
                     editingName = false
                 }) { Text("Save", color = Color.White) }
             },
-        )
-    }
-    phoneError?.let { message ->
-        AppDialog(
-            title = "Phone number",
-            message = message,
-            onDismiss = { phoneError = null },
-            buttons = { TextButton(onClick = { phoneError = null }) { Text("OK", color = Color.White) } },
-        )
-    }
-    unavailable?.let { message ->
-        AppDialog(
-            title = "Not in this build",
-            message = message,
-            onDismiss = { unavailable = null },
-            buttons = { TextButton(onClick = { unavailable = null }) { Text("Got it", color = Color.White) } },
         )
     }
 }

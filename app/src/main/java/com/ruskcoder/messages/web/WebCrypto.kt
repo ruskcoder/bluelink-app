@@ -20,7 +20,7 @@ import javax.crypto.spec.SecretKeySpec
 /**
  * The phone's half of the browser link's encryption.
  *
- * A byte-for-byte mirror of `packages/protocol/src/crypto.ts` in messages-web: P-256 ECDH, then
+ * A byte-for-byte mirror of `src/protocol/crypto.ts` in messages-web: P-256 ECDH, then
  * HKDF-SHA256 salted with the pairing secret from the QR code, then AES-256-GCM. Everything here
  * is in the platform's JCA, so the link adds no crypto dependency. Change one side, change both.
  *

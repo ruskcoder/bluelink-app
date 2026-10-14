@@ -87,11 +87,6 @@ fun ConnectionScreen(monitor: ConnectionMonitor, onReconnect: () -> Unit, onBack
             SettingsRow(
                 icon = if (battery.exempt) Icons.Outlined.BatteryFull else Icons.Outlined.BatteryAlert,
                 title = "Battery optimization",
-                description = if (battery.exempt) {
-                    "Unrestricted — messages arrive while the phone is idle"
-                } else {
-                    "Restricted — messages may wait until you open the app. Tap to allow."
-                },
                 chevron = !battery.exempt,
                 onClick = if (battery.exempt) null else battery.request,
             )
@@ -116,7 +111,6 @@ fun ConnectionScreen(monitor: ConnectionMonitor, onReconnect: () -> Unit, onBack
             SettingsRow(
                 icon = Icons.Outlined.Refresh,
                 title = "Reconnect now",
-                description = "Closes the connection to Apple and opens a fresh one",
                 onClick = onReconnect,
             )
         }

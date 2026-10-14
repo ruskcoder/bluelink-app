@@ -1958,10 +1958,6 @@ private fun MessageThreadRow(
                 // status on a message that already carries one costs the conversation no height:
                 // the words arrive beside what is already there rather than under it.
                 ReceiptSlot(visible = grown && (standingLabels || statusShown)) {
-                    // Exactly the test the bubble draws its tail by — see [AppleBubble]'s `showTail`.
-                    // This used to ask for `threadEnd`, which is about reply threads and not tails,
-                    // so the last bubble of an ordinary run never counted as having one.
-                    val tailed = row.isLastInRun || row.forcedTail || stickerTail
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         // Ahead of the status, not after it: it is the one thing on this line you
                         // can press, and it should not be found by reading past a caption first.
@@ -1988,7 +1984,6 @@ private fun MessageThreadRow(
                                     edited = row.message.edited(),
                                     quietly = row.message.deliveredQuietly(),
                                     readAt = readAt,
-                                    tailed = tailed,
                                 )
                                 bubbleType == BubbleStyle.APPLE -> AppleReceipt(
                                     status = status,
@@ -1996,7 +1991,6 @@ private fun MessageThreadRow(
                                     groupLabel = groupLabel,
                                     quietly = row.message.deliveredQuietly(),
                                     readAt = readAt,
-                                    tailed = tailed,
                                 )
                                 bubbleType == BubbleStyle.GOOGLE ->
                                     GoogleReceipt(status, row.message.time, groupLabel = groupLabel, edited = row.message.edited())
