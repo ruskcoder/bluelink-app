@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -99,11 +100,35 @@ class WebBridge(
     private val links = ConcurrentHashMap<String, Link>()
     @Volatile private var started = false
 
+    private val appContext = context.applicationContext
+    private val wake = com.ruskcoder.messages.imessage.PushWakeLock(appContext)
+
     /** Idempotent. */
     fun start() {
         if (started) return
         started = true
         _pairings.value.forEach { pairing -> links.getOrPut(pairing.room) { Link(pairing, hello = null).also { it.connect() } } }
+        if (_pairings.value.isNotEmpty()) WebKeepAlive.arm(appContext)
+    }
+
+    /**
+     * One keepalive round, run from [WebKeepAlive]'s alarm with the CPU held awake.
+     *
+     * The ping loop on each link only runs while the device is awake: a coroutine `delay` doesn't
+     * advance while the processor is suspended. So a phone asleep in a pocket stops pinging, the
+     * carrier's NAT forgets the connection, and the relay goes on believing in a socket that no
+     * longer reaches anyone. This is the round that survives sleep — it pings every link and waits
+     * for the answer, and reconnects any link whose retry fell due while the device slept.
+     */
+    suspend fun tick() {
+        if (!started) start()
+        if (_pairings.value.isEmpty()) return
+        wake.holding {
+            kotlinx.coroutines.coroutineScope {
+                links.values.forEach { link -> launch { link.check() } }
+            }
+        }
+        WebKeepAlive.arm(appContext)
     }
 
     /** The default network changed: sockets on the old one may be silently dead, so don't wait for the ping loop. */
@@ -147,6 +172,7 @@ class WebBridge(
         }
 
         persist(_pairings.value.filterNot { it.room == pairing.room } + pairing)
+        WebKeepAlive.arm(appContext)
         pairing
     }
 
@@ -158,6 +184,7 @@ class WebBridge(
         }
         _states.update { it - room }
         persist(_pairings.value.filterNot { it.room == room })
+        if (_pairings.value.isEmpty()) WebKeepAlive.cancel(appContext)
     }
 
     private fun persist(list: List<WebPairing>) {
@@ -174,9 +201,13 @@ class WebBridge(
 
         @Volatile private var socket: WebSocket? = null
         @Volatile private var closed = false
-        @Volatile private var lastPong = 0L
+        /** When the relay last answered a ping, as wall-clock time. */
+        private val lastPong = MutableStateFlow(0L)
         @Volatile private var browserPresent = false
         private var attempt = 0
+
+        /** When a dropped link is due to reconnect. Wall-clock, so the time asleep counts toward it. */
+        @Volatile private var retryAt = 0L
         private var keepalive: Job? = null
         private var chatsJob: Job? = null
         private var typingJob: Job? = null
@@ -194,7 +225,8 @@ class WebBridge(
         private val seen = LinkedHashMap<String, Long>()
 
         fun connect() {
-            if (closed) return
+            // Both the backoff coroutine and the keepalive alarm may decide it's time; one socket.
+            if (closed || socket != null) return
             setState(LinkState.CONNECTING)
             val url = "${pairing.relay.trimEnd('/')}/room/${pairing.room}?role=phone"
             val request = runCatching { Request.Builder().url(url).build() }.getOrElse {
@@ -209,6 +241,36 @@ class WebBridge(
             socket?.cancel()
         }
 
+        /** Pings and waits for the answer, or reconnects if the link is down and its retry is due. */
+        suspend fun check() {
+            if (closed) return
+            val current = socket
+            if (current == null) {
+                if (System.currentTimeMillis() < retryAt) return
+                connect()
+                awaitOpen()
+                return
+            }
+            val sentAt = System.currentTimeMillis()
+            current.send("ping")
+            if (withTimeoutOrNull(PONG_WAIT_MS) { lastPong.first { it >= sentAt } } != null) return
+
+            Log.i(TAG, "relay didn't answer the keepalive, reconnecting")
+            current.cancel()
+            // `dropped` clears the socket on OkHttp's thread; reconnect now rather than after a
+            // backoff the device may well sleep through.
+            withTimeoutOrNull(2_000) { while (socket === current) delay(50) }
+            retryAt = 0L
+            connect()
+            awaitOpen()
+        }
+
+        private suspend fun awaitOpen() {
+            withTimeoutOrNull(PONG_WAIT_MS) {
+                _states.first { it[pairing.room] == LinkState.READY || it[pairing.room] == LinkState.ACTIVE }
+            }
+        }
+
         fun close() {
             closed = true
             keepalive?.cancel()
@@ -221,7 +283,7 @@ class WebBridge(
         private inner class Listener : WebSocketListener() {
             override fun onOpen(webSocket: WebSocket, response: Response) {
                 attempt = 0
-                lastPong = System.currentTimeMillis()
+                lastPong.value = System.currentTimeMillis()
                 hello?.let { key ->
                     // Our public key goes in the clear; the event after it is the first thing sealed
                     // with the new keys, and decrypting it is how the browser knows they agree.
@@ -237,7 +299,7 @@ class WebBridge(
 
             override fun onMessage(webSocket: WebSocket, text: String) {
                 if (text == "pong") {
-                    lastPong = System.currentTimeMillis()
+                    lastPong.value = System.currentTimeMillis()
                     return
                 }
                 inbox.trySend(text)
@@ -252,15 +314,21 @@ class WebBridge(
             override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) = dropped(webSocket, t)
         }
 
+        /**
+         * Pings while the device is awake. Judged against the ping it sent rather than the time
+         * since the last pong: a device that slept between two rounds would otherwise wake up and
+         * tear down a socket that was fine all along. [check] covers the time asleep.
+         */
         private suspend fun ping(webSocket: WebSocket) {
             while (true) {
+                val sentAt = System.currentTimeMillis()
+                webSocket.send("ping")
                 delay(PING_INTERVAL_MS)
-                if (System.currentTimeMillis() - lastPong > PONG_TIMEOUT_MS) {
+                if (lastPong.value < sentAt) {
                     Log.i(TAG, "relay stopped answering, reconnecting")
                     webSocket.cancel()
                     return
                 }
-                webSocket.send("ping")
             }
         }
 
@@ -269,6 +337,9 @@ class WebBridge(
             socket = null
             keepalive?.cancel()
             stopStreaming()
+            // Whatever the relay says next is about a new socket, and a browser still there has to
+            // be streamed to again — so the next `presence` must not look like old news.
+            browserPresent = false
             if (hello != null) {
                 // Still pairing: fail fast with the real reason rather than retrying behind a spinner.
                 opened.completeExceptionally(error ?: IOException("closed"))
@@ -277,9 +348,10 @@ class WebBridge(
             if (closed) return
             setState(LinkState.OFFLINE)
             error?.let { Log.i(TAG, "relay connection lost: ${it.message}") }
-            val backoff = minOf(MAX_BACKOFF_MS, 1000L shl minOf(attempt++, 6))
+            val backoff = minOf(MAX_BACKOFF_MS, 1000L shl minOf(attempt++, 6)) + Random.nextLong(500)
+            retryAt = System.currentTimeMillis() + backoff
             scope.launch {
-                delay(backoff + Random.nextLong(500))
+                delay(backoff)
                 connect()
             }
         }
@@ -293,6 +365,9 @@ class WebBridge(
         }
 
         private fun onPresence(web: Boolean) {
+            // The relay re-sends presence to check this socket still reaches the phone (a browser
+            // just arrived, or came back to its tab). Its ping auto-response is the answer.
+            socket?.send("ping")
             if (web == browserPresent) return
             browserPresent = web
             setState(if (web) LinkState.ACTIVE else LinkState.READY)
@@ -300,6 +375,9 @@ class WebBridge(
                 chatsJob = scope.launch { streamChats() }
                 typingJob = scope.launch { streamTyping() }
                 settingsJob = scope.launch { streamSettings() }
+                // The streams carry only what changes from here on. Anything that changed while
+                // this socket was down is the browser's to re-read, and this is its cue.
+                sendEvent("ready", JsonObject(emptyMap()))
             } else {
                 stopStreaming()
             }
@@ -450,7 +528,7 @@ class WebBridge(
         const val TAG = "WebBridge"
         const val PAIR_TIMEOUT_MS = 15_000L
         const val PING_INTERVAL_MS = 25_000L
-        const val PONG_TIMEOUT_MS = 70_000L
+        const val PONG_WAIT_MS = 10_000L
         const val MAX_BACKOFF_MS = 60_000L
         const val REPLAY_WINDOW_MS = 5 * 60_000L
         const val DEBOUNCE_MS = 150L

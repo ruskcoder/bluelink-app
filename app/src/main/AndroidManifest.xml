@@ -241,6 +241,11 @@
             android:name=".imessage.ScheduledSendReceiver"
             android:exported="false" />
 
+        <!-- The keepalive round for linked browsers' relay sockets; sent only by the app's own alarm. -->
+        <receiver
+            android:name=".web.WebKeepAliveReceiver"
+            android:exported="false" />
+
         <!--
             Asks Google Play services to install the backported system photo picker on devices that
             shipped without one. Without it `PickVisualMedia.isPhotoPickerAvailable` is false there and
