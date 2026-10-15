@@ -82,6 +82,7 @@ import androidx.compose.ui.zIndex
 import com.ruskcoder.messages.data.model.Attachment
 import com.ruskcoder.messages.data.model.BubbleStyle
 import com.ruskcoder.messages.ui.components.bubbles.AppleGroupGutter
+import com.ruskcoder.messages.ui.components.bubbles.AppleTailReserve
 import com.ruskcoder.messages.ui.components.bubbles.BubbleRowInset
 import com.ruskcoder.messages.ui.components.bubbles.GoogleGroupGutter
 import com.ruskcoder.messages.ui.components.bubbles.WhatsAppGroupGutter
@@ -1081,6 +1082,7 @@ fun MessageThread(
                 // other shuts.
                 showReceipt = id == receiptOn || id == receiptLeaving,
                 receiptVisible = id == receiptOn,
+                receiptHandedOver = handover?.leaving != null && id == handover?.on,
                 arriving = id in arrivals,
                 bubbleType = settings.bubbleType,
                 hidden = id in hiddenIds,
@@ -1534,6 +1536,13 @@ private fun MessageThreadRow(
     showReceipt: Boolean,
     /** False for the row the receipt is leaving, which shuts its slot as the other opens. */
     receiptVisible: Boolean,
+    /**
+     * True for the row a handover is moving the receipt onto. Its line opens on the handover's own
+     * frame, the same frame the old row's starts shutting, rather than waiting for [grown]: the
+     * handover already waits out the arrival, and a row whose arrival started late would otherwise
+     * open its line a beat after the other had begun to close.
+     */
+    receiptHandedOver: Boolean = false,
     /** True for a message that landed while the conversation was on screen — it gets an entrance. */
     arriving: Boolean,
     bubbleType: BubbleStyle,
@@ -1688,6 +1697,10 @@ private fun MessageThreadRow(
      * every frame of its own arrival to answer a question that changes once.
      */
     var grown by remember { mutableStateOf(!arriving) }
+    /** The room under this row's Apple tail, kept by the caption row rather than the bubble. */
+    val tailReserve = remember { AppleTailReserve() }
+    /** How far the line under this row is open, for the Apple caption row around it. */
+    val slotProgress = remember { SlotProgress() }
     LaunchedEffect(Unit) {
         if (entrance.value < 1f) entrance.animateTo(1f, tween(ArrivalMs, easing = ArrivalEasing))
         grown = true
@@ -1774,6 +1787,9 @@ private fun MessageThreadRow(
                       quotedSender = row.quotedSender,
                       forcedAvatar = row.forcedAvatar,
                       forcedTail = row.forcedTail || stickerTail,
+                      // The caption row keeps the room under an Apple tail — see [appleCaptionLine].
+                      // Not under a tombstone, which has no caption row to keep it.
+                      tailReserve = if (bubbleType == BubbleStyle.APPLE && row.message !is Message.Deleted) tailReserve else null,
                       quotedAnchor = quotedAnchor,
                       anchorRevision = anchorRevision,
                       targetIsOutline = row.targetIsOutline,
@@ -1946,6 +1962,8 @@ private fun MessageThreadRow(
                             0.dp
                         },
                     )
+                    // Inside the gap above, so the gap stays under whichever is taller, the tail or the line.
+                    .then(if (bubbleType == BubbleStyle.APPLE) Modifier.appleCaptionLine(tailReserve, slotProgress) else Modifier)
                     // Hung off the bubble above it, so it goes wherever that bubble goes while the
                     // time column is open — a "Delivered" left standing where the message used to
                     // be reads as a caption that has come loose from what it captions.
@@ -1957,8 +1975,16 @@ private fun MessageThreadRow(
                 // The slot stays open for as long as there is a standing label in it, so opening a
                 // status on a message that already carries one costs the conversation no height:
                 // the words arrive beside what is already there rather than under it.
-                ReceiptSlot(visible = grown && (standingLabels || statusShown)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                val ready = grown || receiptHandedOver
+                ReceiptSlot(visible = ready && (standingLabels || statusShown), progress = slotProgress) {
+                    // Past the tail under a tailed bubble, and for the standing receipt wherever it
+                    // is, including the row it is leaving, which has just lost its tail. A line
+                    // tapped open under an untailed bubble sits against the edge.
+                    StatusLine(
+                        mine = row.message.mine,
+                        bubbleType = bubbleType,
+                        clearTail = standingReceipt || row.isLastInRun || row.forcedTail || stickerTail,
+                    ) {
                         // Ahead of the status, not after it: it is the one thing on this line you
                         // can press, and it should not be found by reading past a caption first.
                         replayLabel?.let {
@@ -1971,7 +1997,10 @@ private fun MessageThreadRow(
                         // so it stays in for as long as that slot is still shrinking — shut here
                         // too, the leaving row's line vanished on the first frame and the slot
                         // closed around nothing. The outer slot drops it once it is fully shut.
-                        StatusSlot(visible = grown && (statusShown || !standingLabels)) {
+                        // Nothing at all where the style draws its status on the bubble, so the line's
+                        // spacing is never spent on an empty slot.
+                        val statusHasContent = failure != null || !standingReceipt || bubbleType != BubbleStyle.WHATSAPP
+                        StatusSlot(visible = ready && statusHasContent && (statusShown || !standingLabels)) {
                             when {
                                 failure != null -> FailedReceipt()
                                 !standingReceipt -> TappedStatusLine(

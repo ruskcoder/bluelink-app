@@ -2826,6 +2826,8 @@ fun ChatScreen(
                         val target = anchor.message
                         // A photo group, and for a card stack the picture currently on top of it.
                         val targetGroup = (target as? Message.AttachmentMessage)?.attachment as? Attachment.MediaGroup
+                        val targetSingle = (target as? Message.AttachmentMessage)?.attachment
+                        val targetImage = targetSingle as? Attachment.Image
                         val stackTop = targetGroup
                             ?.takeIf { settings.multiMediaStyle == com.ruskcoder.messages.data.model.MultiMediaStyle.STACK }
                             ?.let { MediaStackPositions.top(it) }
@@ -2875,10 +2877,20 @@ fun ChatScreen(
                             // The overlay's only part in an edit is getting out of the way: the
                             // bubble goes home and the row it lands in becomes the editor.
                             onEdit = { closeMessageMenu(); pendingAction = { editingId = target.id } },
-                            copyLabel = if (stackTop != null) "Copy current" else "Copy",
+                            copyLabel = when {
+                                stackTop != null -> "Copy current"
+                                targetImage != null -> "Copy Image"
+                                else -> "Copy"
+                            },
                             onCopy = when {
-                                stackTop != null -> ({
-                                    val copied = copyMediaToClipboard(context, stackTop.uri)
+                                // A video has nothing a clipboard can usefully hold, and the text
+                                // behind a photo or a grid is only its preview ("Photo"), which is
+                                // not what anyone pressing Copy on a picture wants.
+                                stackTop is ViewableMedia.Clip -> null
+                                targetSingle is Attachment.Video -> null
+                                targetGroup != null && stackTop == null -> null
+                                stackTop != null || targetImage != null -> ({
+                                    val copied = copyMediaToClipboard(context, stackTop?.uri ?: targetImage!!.uri)
                                     Toast.makeText(
                                         context,
                                         if (copied) "Copied" else "Couldn't copy this one",
@@ -2943,7 +2955,11 @@ fun ChatScreen(
                             },
                             // Anything with a real file behind it can be taken out of the app;
                             // everything else offers no row rather than a greyed-out one.
-                            downloadLabel = if (targetGroup != null) "Save all" else "Download",
+                            downloadLabel = when {
+                                targetGroup != null -> "Save all"
+                                targetImage != null || targetSingle is Attachment.Video -> "Save to Gallery"
+                                else -> "Download"
+                            },
                             onDownloadCurrent = stackTop?.let { top ->
                                 {
                                     closeMessageMenu()

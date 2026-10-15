@@ -1,9 +1,9 @@
-# BlueLink
+# BlueSync
 
 An Android messaging app, written in Kotlin and Jetpack Compose, that speaks iMessage.
 
 The protocol work is [rustpush](https://github.com/OpenBubbles/rustpush), the Rust implementation
-behind OpenBubbles. BlueLink re-hosts it behind a UniFFI surface (`rust/imessage-core`) and builds a
+behind OpenBubbles. BlueSync re-hosts it behind a UniFFI surface (`rust/imessage-core`) and builds a
 native Compose client on top: conversations, replies, tapbacks, edits, unsends, typing indicators,
 receipts, groups, attachments, and iMessage games through an OpenPigeon extension host.
 
@@ -25,7 +25,7 @@ agent on a Mac or iPhone that produces validation data on request. See
 ## Building
 
 ```bash
-git clone --recurse-submodules https://github.com/ruskcoder/bluelink-app
+git clone --recurse-submodules https://github.com/ruskcoder/bluesync-app
 ```
 
 ```bash
@@ -61,7 +61,7 @@ git config core.hooksPath .githooks
 
 ## License
 
-BlueLink links rustpush, which is licensed under the Server Side Public License v1, so this
+BlueSync links rustpush, which is licensed under the Server Side Public License v1, so this
 repository is distributed under the same license: see [LICENSE](LICENSE). Third-party components
 keep their own terms; see [NOTICE.md](NOTICE.md), `rust/rustpush/LICENSE`, and
 `rust/vendor/unicorn-engine-sys/COPYING`.

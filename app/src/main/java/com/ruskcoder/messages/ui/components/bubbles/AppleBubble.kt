@@ -1,5 +1,8 @@
 package com.ruskcoder.messages.ui.components.bubbles
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.CubicBezierEasing
+import androidx.compose.animation.core.VectorConverter
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -39,6 +42,7 @@ import androidx.compose.ui.unit.toSize
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -192,6 +196,42 @@ fun useAppleBubbleColors(mine: Boolean): BubbleColors {
     }
 }
 
+/**
+ * The bubble's corner radius cap at a given text scale: a one-line bubble's half-height, plus a
+ * little, so a scaled-up bubble keeps its stadium.
+ */
+fun appleMaxRadius(scale: Float): Dp = (ceil((PaddingTop.value + PaddingTop.value + LINE_HEIGHT * scale) / 2) + 2).dp
+
+/**
+ * How far in from the bubble's edge the line under it starts, clear of the tail's curl.
+ *
+ * The lowest part of the tail reaches about one corner radius in from the edge (x = 379.6 of the
+ * 504-wide art, against a radius of 120). The caption sits level with the tail, not under it, so it
+ * starts just short of that: the curl tapers to nothing at its inner end.
+ */
+@Composable
+fun appleTailClearance(): Dp = appleMaxRadius(LocalSettings.current.textScale()) * TailReach - 1.dp
+
+private const val TailReach = (504f - 379.6f) / 120f
+
+/**
+ * The room under a bubble's straight edge that its tail hangs into, handed to the caller to keep.
+ *
+ * By default a bubble pads itself underneath by the tail's overhang. In the conversation that made
+ * the caption under it sit below the *tail* rather than the bubble, and made the bubble's own box
+ * change height when a newer message took its tail away. The row then settled that height from the
+ * bottom up, so the message dropped a few dip and climbed back. Handed over, the bubble's box is the
+ * bubble alone, and the row keeps the room under it as the larger of this and the caption.
+ *
+ * Read in layout only. [height] is eased, so a lost tail gives its room back gradually.
+ */
+class AppleTailReserve {
+    var height: () -> Dp = { 0.dp }
+}
+
+private const val TailReserveMs = 260
+private val TailReserveEasing = CubicBezierEasing(0.22f, 0.68f, 0.32f, 1f)
+
 @Composable
 fun AppleBubble(
     isFromMe: Boolean,
@@ -287,6 +327,8 @@ fun AppleBubble(
     /** Reports this row's own outline, so a reply below it can aim at that instead. */
     onOutlineLayout: ((LayoutCoordinates?) -> Unit)? = null,
     selectable: Boolean = false,
+    /** Takes over the room under the tail, so the line beneath can share it. See [AppleTailReserve]. */
+    tailReserve: AppleTailReserve? = null,
 ) {
     // The tail as drawn, which is not always the tail the run asked for — see [forcedTail].
     @Suppress("NAME_SHADOWING")
@@ -299,7 +341,7 @@ fun AppleBubble(
 
     // Derived every recomposition rather than a constant: the text-size setting changes what a
     // one-line bubble measures, and the cap has to track it or a scaled-up bubble loses its stadium.
-    val maxRadiusDp = (ceil((PaddingTop.value + PaddingTop.value + LINE_HEIGHT * scale) / 2) + 2).dp
+    val maxRadiusDp = appleMaxRadius(scale)
     // Approximates the RN source's measured tail overflow (radius actually caps at height/2, but
     // that's ≤ maxRadius always) — exact for the common one/two-line stadium case, a hair generous
     // for a very tall bubble.
@@ -371,6 +413,19 @@ fun AppleBubble(
     val jumbo = if (audio == null && attachment == null) emojiOnlyCount(text) else 0
     val jumboEmoji = jumbo in 1..EmojiJumboMax
 
+    // The overhang the tail hangs into, below the bubble's straight edge. Reserved under the bubble
+    // itself unless the caller has taken it over — see [AppleTailReserve].
+    val tailBelow = if (mediaFlush || jumboEmoji) 0.dp else tailOverflow
+    if (tailReserve != null) {
+        // Eased rather than switched: a message losing its tail to the one sent after it gives the
+        // room back over the same beat the bubble above it would have resized on.
+        val reserve = remember { Animatable(tailBelow, Dp.VectorConverter) }
+        LaunchedEffect(tailBelow) {
+            if (reserve.targetValue != tailBelow) reserve.animateTo(tailBelow, tween(TailReserveMs, easing = TailReserveEasing))
+        }
+        tailReserve.height = { reserve.value }
+    }
+
     val bubble: @Composable () -> Unit = {
         Box(
             modifier = Modifier
@@ -393,7 +448,7 @@ fun AppleBubble(
                 .bubbleMaxWidth(bubbleWidthFraction(isFromMe))
                 // A flush photo keeps no room under itself for the tail, because its own shape
                 // carries the tail inside the box; every other bubble reserves that overhang.
-                .then(if (mediaFlush || jumboEmoji) Modifier else Modifier.padding(bottom = tailOverflow))
+                .then(if (tailReserve != null) Modifier else Modifier.padding(bottom = tailBelow))
                 // Nothing under a flush photo: its tile lays the bubble colour down itself while it
                 // loads and takes it away once the picture arrives, so a transparent PNG does not
                 // come up filled in blue or grey. A jumbo emoji has no ground either: it is drawn

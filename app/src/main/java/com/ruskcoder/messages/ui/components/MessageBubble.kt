@@ -290,6 +290,8 @@ fun MessageBubble(
     forcedAvatar: Boolean = false,
     /** Draws this message's tail even mid-run, because a reply below points at it — see [ThreadRow]. */
     forcedTail: Boolean = false,
+    /** Apple only: the row keeps the room under the tail instead of the bubble. See [AppleTailReserve]. */
+    tailReserve: com.ruskcoder.messages.ui.components.bubbles.AppleTailReserve? = null,
     /** Bumped when any row becomes measurable, so a connector waiting on one redraws. */
     anchorRevision: (() -> Int)? = null,
     /** Whether this reply's line ends on the outline of the row it names, not on its bubble. */
@@ -650,6 +652,7 @@ fun MessageBubble(
                         hasQuote = message.replyTo() != null, quoteAdjacent = quoteAdjacent, splitTop = splitTop, splitBottom = splitBottom, threadEnd = threadEnd, bubbleHidden = bubbleHidden, hasReactions = hasReactions, selectable = selectable,
                         quotedSender = quotedSender, quotedAnchor = quotedAnchor, onAvatarLayout = onAvatarLayout, inGroup = inGroup, drawConnector = drawConnector, forcedAvatar = forcedAvatar, forcedTail = forcedTail,
                         targetIsOutline = targetIsOutline, onOutlineLayout = onOutlineLayout, anchorRevision = anchorRevision,
+                        tailReserve = tailReserve,
                     )
                     BubbleStyle.GOOGLE -> GoogleBubble(
                         text = text, mine = message.mine, isFirst = isFirstInRun, isLast = isLastInRun, replyTo = replyTo,

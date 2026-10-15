@@ -5,6 +5,7 @@ import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.border
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -54,7 +55,9 @@ import com.ruskcoder.messages.data.model.BubbleStyle
 import com.ruskcoder.messages.data.model.DeliveryStatus
 import com.ruskcoder.messages.data.model.MessageReceipts
 import kotlin.math.roundToInt
+import com.ruskcoder.messages.ui.components.bubbles.AppleTailReserve
 import com.ruskcoder.messages.ui.components.bubbles.BubbleRowInset
+import com.ruskcoder.messages.ui.components.bubbles.appleTailClearance
 import com.ruskcoder.messages.ui.components.bubbles.useAppleBubbleColors
 import com.ruskcoder.messages.util.formatReadTime
 
@@ -73,6 +76,38 @@ import com.ruskcoder.messages.util.formatReadTime
  * do — but two points down was past legible. Change it here and every Apple status line follows.
  */
 private val AppleCaptionSize = 10.sp
+
+/** How far the whole Apple line under a bubble is lifted toward it. See [appleCaptionLine]. */
+private val AppleCaptionRise = 6.dp
+
+/**
+ * Hangs the Apple line off the bubble's straight edge and shares the room under it with the tail.
+ *
+ * The bubble no longer pads itself for its tail ([AppleTailReserve]), so this row starts at the
+ * straight edge whether there is a tail or not. That gives a tailed and an untailed bubble the same
+ * caption distance, and the caption sits beside the tail rather than under it (see
+ * [appleTailClearance]). Open, the row claims whichever is taller: the tail's overhang, or the
+ * line, lifted by [AppleCaptionRise].
+ *
+ * Between shut and open the height is blended on the slot's own [progress], not taken as a plain
+ * max. A max sat on the tail's height for most of a grow and only started pushing near the end, so
+ * in a handover the old line shrank from the first frame while the new one seemed to wait. Blended,
+ * both rows move together from the same frame.
+ */
+fun Modifier.appleCaptionLine(tailReserve: AppleTailReserve, progress: SlotProgress): Modifier = layout { measurable, constraints ->
+    val placeable = measurable.measure(constraints)
+    val f = progress.value().coerceIn(0f, 1f)
+    val rise = AppleCaptionRise.toPx() * f
+    val tail = tailReserve.height().toPx()
+    // tail·(1−f) + max(tail, full − rise)·f, written with the slot's current height (full·f).
+    val height = tail * (1f - f) + maxOf(tail * f, placeable.height - rise)
+    layout(placeable.width, height.roundToInt().coerceAtLeast(0)) { placeable.place(0, -rise.roundToInt()) }
+}
+
+/** How far open a [ReceiptSlot] is, 0 to 1, for a layout around it to read. */
+class SlotProgress {
+    var value: () -> Float = { 0f }
+}
 
 /** The same idea, gentler: the Google bubble has no tail, so there is no notch to climb into. */
 private val GoogleReceiptRise = 5.dp
@@ -134,7 +169,7 @@ fun FailedReceipt(modifier: Modifier = Modifier) {
         color = MaterialTheme.colorScheme.error,
         fontSize = AppleCaptionSize,
         fontWeight = FontWeight.Bold,
-        modifier = modifier.padding(top = 1.dp, end = BubbleRowInset),
+        modifier = modifier,
     )
 }
 
@@ -227,7 +262,7 @@ fun GoogleReceipt(
         // Flush with the bubble's trailing edge above it — the same 8dp inset the bubble row keeps.
         // Tight under the bubble's trailing edge: the line belongs to the message above it, and
         // the space it was keeping read as a gap between two messages instead.
-        modifier = modifier.padding(end = GoogleReceiptInset).offset(y = -GoogleReceiptRise),
+        modifier = modifier.padding(end = GoogleReceiptInset - BubbleRowInset).offset(y = -GoogleReceiptRise),
     ) {
         // A dot keeps the two facts apart: Google has no blue-link idiom to borrow, and a
         // coloured word here would read as a warning.
@@ -402,7 +437,7 @@ fun AppleReceipt(
         label,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         fontSize = AppleCaptionSize,
-        modifier = modifier.padding(top = 1.dp, end = BubbleRowInset),
+        modifier = modifier,
     )
 }
 
@@ -431,12 +466,6 @@ fun TappedStatusLine(
     readAt: Long? = null,
     modifier: Modifier = Modifier,
 ) {
-    // Flush with whichever bubble edge the line hangs off, the way the standing receipt is.
-    val inset = if (mine) {
-        Modifier.padding(top = 1.dp, end = BubbleRowInset)
-    } else {
-        Modifier.padding(top = 1.dp, start = BubbleRowInset)
-    }
     when {
         mine && bubbleType == BubbleStyle.APPLE -> AppleReceipt(status, time, modifier, groupLabel, quietly, readAt)
         mine && bubbleType == BubbleStyle.GOOGLE -> GoogleReceipt(status, time, modifier, groupLabel, edited)
@@ -447,7 +476,7 @@ fun TappedStatusLine(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontSize = if (bubbleType == BubbleStyle.APPLE) AppleCaptionSize else 11.sp,
             fontWeight = FontWeight.Bold,
-            modifier = modifier.then(inset),
+            modifier = modifier,
         )
     }
 }
@@ -468,10 +497,17 @@ fun TappedStatusLine(
  * corner.
  */
 @Composable
-fun ReceiptSlot(visible: Boolean, modifier: Modifier = Modifier, content: @Composable () -> Unit) {
+fun ReceiptSlot(
+    visible: Boolean,
+    modifier: Modifier = Modifier,
+    /** Handed the slot's progress, for a layout around it — see [appleCaptionLine]. */
+    progress: SlotProgress? = null,
+    content: @Composable () -> Unit,
+) {
     // Starts settled: a receipt already on screen when a row is composed — a chat being opened, a
     // row scrolled back into view — was never an arrival, and must not play one.
     val shown = remember { Animatable(if (visible) 1f else 0f) }
+    progress?.value = { shown.value }
     LaunchedEffect(visible) {
         val target = if (visible) 1f else 0f
         if (shown.value != target) shown.animateTo(target, tween(ReceiptGrowMs, easing = ReceiptEasing))
@@ -516,6 +552,38 @@ fun StatusSlot(visible: Boolean, modifier: Modifier = Modifier, content: @Compos
 }
 
 /**
+ * The one container for everything on the line under a message: the replay control, the status
+ * and the standing labels.
+ *
+ * It owns the inset from the bubble's edge and the space between the pieces. They used to carry
+ * their own paddings and borrow each other's as gaps, so the line only held together when the
+ * right ones happened to be present. On Apple the inset also clears the tail, the same for a bubble
+ * with a tail and one without, so the line does not jump sideways when a message loses its tail.
+ */
+@Composable
+fun StatusLine(
+    mine: Boolean,
+    bubbleType: BubbleStyle,
+    modifier: Modifier = Modifier,
+    /**
+     * Apple only: whether the line sits in past the tail. True under a tailed bubble and for the
+     * standing receipt while it travels to a new message. False for a line tapped open under an
+     * untailed bubble, which has no tail to clear and sits against the edge.
+     */
+    clearTail: Boolean = true,
+    content: @Composable () -> Unit,
+) {
+    val outer = BubbleRowInset + if (bubbleType == BubbleStyle.APPLE && clearTail) appleTailClearance() else 0.dp
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(MetaLabelGap),
+        modifier = modifier.padding(top = 1.dp, start = if (mine) 0.dp else outer, end = if (mine) outer else 0.dp),
+    ) {
+        content()
+    }
+}
+
+/**
  * What a message says about itself under its own bubble, permanently: that it was rewritten, and
  * how many replies it has drawn.
  *
@@ -552,15 +620,9 @@ fun MessageMetaLabels(
         BubbleStyle.GOOGLE -> GoogleReceiptRise
         else -> 0.dp
     }
-    val inset = BubbleRowInset
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = modifier
-            // On the outer side only — the edge of the row these labels are flush with. The status
-            // opening on the inner side brings its own inset with it, which doubles as the gap
-            // between the two.
-            .padding(top = 1.dp, start = if (mine) 0.dp else inset, end = if (mine) inset else 0.dp)
-            .offset(y = -rise),
+        modifier = modifier.offset(y = -rise),
     ) {
         if (edited) {
             Text(
@@ -627,17 +689,9 @@ fun MessageReplayLabel(bubbleType: BubbleStyle, mine: Boolean, onClick: () -> Un
         BubbleStyle.GOOGLE -> GoogleReceiptRise
         else -> 0.dp
     }
-    val inset = BubbleRowInset
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
-            // The row's outer edge only where this label is actually against one: on their side it
-            // is the first thing in a line that starts at the row's edge, and on yours it sits in
-            // the middle of the row with the trailing label carrying that inset instead.
-            //
-            // The gap after it is not optional. This is a control and what follows it is a caption,
-            // and set flush the pair read as one long label with an arrow stuck to the front.
-            .padding(top = 1.dp, start = if (mine) 0.dp else inset, end = MetaLabelGap)
             .offset(y = -rise)
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
