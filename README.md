@@ -1,6 +1,6 @@
 # BlueSync
 
-An Android messaging app, written in Kotlin and Jetpack Compose, that speaks iMessage.
+An Android messaging app, written in Kotlin and Jetpack Compose, that works for iMessage.
 
 The protocol work is [rustpush](https://github.com/OpenBubbles/rustpush), the Rust implementation
 behind OpenBubbles. BlueSync re-hosts it behind a UniFFI surface (`rust/imessage-core`) and builds a
@@ -21,6 +21,12 @@ A build made from these sources therefore compiles, runs, and does everything el
 validate by itself: it registers through a **validation relay code** instead, which points at an
 agent on a Mac or iPhone that produces validation data on request. See
 [docs/IMESSAGE_SETUP.md](docs/IMESSAGE_SETUP.md).
+
+## Linking with a QR code
+
+Install the BlueBubbles desktop app on a Mac, open **Settings → Device → Share Activation Code**,
+then scan the QR code from BlueSync's setup screen. The code is read once; afterwards the Mac does
+not need to stay on.
 
 ## Building
 
@@ -50,6 +56,12 @@ under `rust/`, rebuild it explicitly:
 | `rust/rustpush/` | Vendored rustpush. |
 | `rust/rustpush/open-absinthe/` | The validation interface, stubbed. |
 | `docs/` | Setup guide and the implementation plan. |
+
+## Credits
+
+BlueSync stands on the work of the [BlueBubbles](https://bluebubbles.app) team and community, whose
+tooling makes iMessage on Android possible, including the desktop Mac app used to link BlueSync.
+Thanks also to [OpenBubbles](https://openbubbles.app) and rustpush for the protocol implementation.
 
 ## Contributing
 

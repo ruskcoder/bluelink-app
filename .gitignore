@@ -41,3 +41,9 @@ app/src/main/jniLibs/**/*.so
 
 # Claude Code session state.
 /.claude/
+
+/build/
+app/build/
+app/release/
+*.apk
+*.dm
