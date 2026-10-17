@@ -1,0 +1,200 @@
+#[cfg(test)]
+mod context_test;
+#[cfg(test)]
+mod srtcp_test;
+#[cfg(test)]
+mod srtp_test;
+
+use std::collections::HashMap;
+use std::sync::Arc;
+
+use shared::replay_detector::*;
+
+use crate::cipher::*;
+use crate::option::*;
+use crate::protection_profile::*;
+use shared::error::{Error, Result};
+
+pub mod srtcp;
+pub mod srtp;
+
+const MAX_ROC: u32 = u32::MAX;
+const SEQ_NUM_MEDIAN: u16 = 1 << 15;
+const SEQ_NUM_MAX: u16 = u16::MAX;
+
+/// Encrypt/Decrypt state for a single SRTP SSRC
+#[derive(Default)]
+pub(crate) struct SrtpSsrcState {
+    ssrc: u32,
+    index: u64,
+    rollover_has_processed: bool,
+    replay_detector: Option<Box<dyn ReplayDetector>>,
+}
+
+/// Encrypt/Decrypt state for a single SRTCP SSRC
+#[derive(Default)]
+pub(crate) struct SrtcpSsrcState {
+    srtcp_index: usize,
+    ssrc: u32,
+    replay_detector: Option<Box<dyn ReplayDetector>>,
+}
+
+impl SrtpSsrcState {
+    fn set_rollover_count(&mut self, sequence_number: u16, roc: u32) {
+        self.index = ((roc as u64) << 16) | sequence_number as u64;
+        self.rollover_has_processed = true;
+    }
+
+    pub fn next_rollover_count(&self, sequence_number: u16) -> (u32, i32, bool) {
+        let local_roc = (self.index >> 16) as u32;
+        let local_seq = self.index as u16;
+
+        let mut guess_roc = local_roc;
+
+        let diff = if self.rollover_has_processed {
+            let seq = (sequence_number as i32).wrapping_sub(local_seq as i32);
+            // When local_roc is equal to 0, and entering seq-local_seq > SEQ_NUM_MEDIAN
+            // judgment, it will cause guess_roc calculation error
+            if self.index > SEQ_NUM_MEDIAN as _ {
+                if local_seq < SEQ_NUM_MEDIAN {
+                    if seq > SEQ_NUM_MEDIAN as i32 {
+                        guess_roc = local_roc.wrapping_sub(1);
+                        seq.wrapping_sub(SEQ_NUM_MAX as i32 + 1)
+                    } else {
+                        seq
+                    }
+                } else if local_seq - SEQ_NUM_MEDIAN > sequence_number {
+                    guess_roc = local_roc.wrapping_add(1);
+                    seq.wrapping_add(SEQ_NUM_MAX as i32 + 1)
+                } else {
+                    seq
+                }
+            } else {
+                // local_roc is equal to 0
+                seq
+            }
+        } else {
+            0i32
+        };
+
+        (guess_roc, diff, (guess_roc == 0 && local_roc == MAX_ROC))
+    }
+
+    /// https://tools.ietf.org/html/rfc3550#appendix-A.1
+    pub fn update_rollover_count(&mut self, sequence_number: u16, diff: i32) {
+        if !self.rollover_has_processed {
+            self.index |= sequence_number as u64;
+            self.rollover_has_processed = true;
+        } else {
+            self.index = self.index.wrapping_add(diff as _);
+        }
+    }
+}
+
+/// Context represents a SRTP cryptographic context
+/// Context can only be used for one-way operations
+/// it must either used ONLY for encryption or ONLY for decryption
+pub struct Context {
+    cipher: Arc<dyn Cipher>,
+
+    srtp_ssrc_states: HashMap<u32, SrtpSsrcState>,
+    srtcp_ssrc_states: HashMap<u32, SrtcpSsrcState>,
+
+    new_srtp_replay_detector: ContextOption,
+    new_srtcp_replay_detector: ContextOption,
+}
+
+impl Context {
+    /// CreateContext creates a new SRTP Context
+    pub fn new(
+        master_key: &[u8],
+        master_salt: &[u8],
+        profile: ProtectionProfile,
+        srtp_ctx_opt: Option<ContextOption>,
+        srtcp_ctx_opt: Option<ContextOption>,
+    ) -> Result<Context> {
+        let cipher = new_cipher(master_key, master_salt, profile)?;
+        Ok(Self::new_with_cipher(
+            cipher,
+            srtp_ctx_opt,
+            srtcp_ctx_opt,
+        ))
+    }
+
+    /// Create a new SRTP context using pre-built immutable cipher material.
+    pub fn new_with_cipher(
+        cipher: Arc<dyn Cipher>,
+        srtp_ctx_opt: Option<ContextOption>,
+        srtcp_ctx_opt: Option<ContextOption>,
+    ) -> Context {
+
+        let srtp_ctx_opt = if let Some(ctx_opt) = srtp_ctx_opt {
+            ctx_opt
+        } else {
+            srtp_no_replay_protection()
+        };
+
+        let srtcp_ctx_opt = if let Some(ctx_opt) = srtcp_ctx_opt {
+            ctx_opt
+        } else {
+            srtcp_no_replay_protection()
+        };
+
+        Context {
+            cipher,
+            srtp_ssrc_states: HashMap::new(),
+            srtcp_ssrc_states: HashMap::new(),
+            new_srtp_replay_detector: srtp_ctx_opt,
+            new_srtcp_replay_detector: srtcp_ctx_opt,
+        }
+    }
+
+    /// Replace only the cipher material, preserving all per-SSRC RTP and RTCP
+    /// state. The previous cipher is returned for reuse or delayed packets.
+    pub fn replace_cipher(&mut self, cipher: Arc<dyn Cipher>) -> Arc<dyn Cipher> {
+        std::mem::replace(&mut self.cipher, cipher)
+    }
+
+    fn get_srtp_ssrc_state(&mut self, ssrc: u32) -> &mut SrtpSsrcState {
+        let s = SrtpSsrcState {
+            ssrc,
+            replay_detector: Some((self.new_srtp_replay_detector)()),
+            ..Default::default()
+        };
+
+        self.srtp_ssrc_states.entry(ssrc).or_insert(s)
+    }
+
+    fn get_srtcp_ssrc_state(&mut self, ssrc: u32) -> &mut SrtcpSsrcState {
+        let s = SrtcpSsrcState {
+            ssrc,
+            replay_detector: Some((self.new_srtcp_replay_detector)()),
+            ..Default::default()
+        };
+        self.srtcp_ssrc_states.entry(ssrc).or_insert(s)
+    }
+
+    /// roc returns SRTP rollover counter value of specified SSRC.
+    fn get_roc(&self, ssrc: u32) -> Option<u32> {
+        self.srtp_ssrc_states
+            .get(&ssrc)
+            .map(|s| (s.index >> 16) as _)
+    }
+
+    /// set_roc sets SRTP rollover counter value of specified SSRC.
+    fn set_roc(&mut self, ssrc: u32, roc: u32) {
+        let state = self.get_srtp_ssrc_state(ssrc);
+        state.index = (roc as u64) << 16;
+        state.rollover_has_processed = false;
+    }
+
+    /// index returns SRTCP index value of specified SSRC.
+    fn get_index(&self, ssrc: u32) -> Option<usize> {
+        self.srtcp_ssrc_states.get(&ssrc).map(|s| s.srtcp_index)
+    }
+
+    /// set_index sets SRTCP index value of specified SSRC.
+    fn set_index(&mut self, ssrc: u32, index: usize) {
+        self.get_srtcp_ssrc_state(ssrc).srtcp_index = index % (MAX_SRTCP_INDEX + 1);
+    }
+}

@@ -29,6 +29,7 @@ use uniffi::HandleAlloc;
 use rand::Rng;
 use uuid::Uuid;
 use rustpush::KeyCache;
+use rustpush::PersistAccountData;
 use std::io::Seek;
 use async_recursion::async_recursion;
 use base64::prelude::*;
@@ -157,7 +158,7 @@ pub fn decode_extension_app(bp: &[u8], bid: &str) -> anyhow::Result<ExtensionApp
 
 #[frb(sync)]
 pub fn encode_extension_app(app: &ExtensionApp) -> anyhow::Result<(Vec<u8>, Option<Vec<u8>>)> {
-    Ok(app.to_raw()?)
+    Ok(app.to_raw(false)?)
 }
 
 impl FilePackager for FFIFilePackager {
@@ -667,10 +668,7 @@ pub async fn restore_account(path: String, anisette: &ArcAnisetteClient<DefaultA
     let mut state = plist::from_file::<_, GSAConfig>(&dir.join("gsa.plist")).ok()?;
 
     let mut apple_account =
-            AppleAccount::new_with_anisette(get_login_config(&dir, config, conn).await, anisette.clone()).expect("aacbf?");
-        
-    apple_account.username = Some(state.username.clone());
-    apple_account.hashed_password = state.get_password().ok();
+            AppleAccount::new_with_anisette(get_login_config(&dir, config, conn).await, anisette.clone(), Some(state.to_persisted()), Box::new(|_| {})).expect("aacbf?");
 
     if state.postdata_done.is_none() {
         info!("Updating postdata");
@@ -686,7 +684,7 @@ pub async fn restore_account(path: String, anisette: &ArcAnisetteClient<DefaultA
 
 #[frb(sync)]
 pub fn make_token_provider(account: &Arc<Mutex<AppleAccount<DefaultAnisetteProvider>>>, config: &JoinedOSConfig) -> Arc<TokenProvider<DefaultAnisetteProvider>> {
-    TokenProvider::new(account.clone(), config.config())
+    TokenProvider::new(account.clone(), config.config(), Default::default(), Box::new(|_| {}))
 }
 
 pub async fn make_shared_streams(path: String, conn: &APSConnection, anisette: &ArcAnisetteClient<DefaultAnisetteProvider>, 
@@ -1613,20 +1611,19 @@ pub async fn answer_ft_request(facetime: &Arc<FTClient>, request: LetMeInRequest
 pub async fn decline_facetime(facetime: &Arc<FTClient>, guid: String) -> anyhow::Result<()> {
     let mut lock = facetime.state.write().await;
     let state = lock.sessions.get_mut(&guid).expect("state");
-    facetime.ensure_allocations(state, &[]).await?;
     facetime.decline_invite(state).await?;
     Ok(())
 }
 
-pub async fn create_facetime(facetime: &Arc<FTClient>, uuid: String, handle: String, participants: Vec<String>) -> anyhow::Result<()> {
-    facetime.create_session(uuid, handle, &participants).await?;
+pub async fn create_facetime(facetime: &Arc<FTClient>, uuid: String, handle: String, participants: Vec<String>, is_video: bool) -> anyhow::Result<()> {
+    facetime.create_session(uuid, handle, &participants, is_video).await?;
     Ok(())
 }
 
 pub async fn cancel_facetime(facetime: &Arc<FTClient>, guid: String) -> anyhow::Result<()> {
     let mut lock = facetime.state.write().await;
     let state = lock.sessions.get_mut(&guid).expect("state");
-    facetime.unprop_conv(state).await?;
+    facetime.leave(state).await?;
     Ok(())
 }
 
@@ -1687,6 +1684,12 @@ pub enum PollResult {
 }
 
 // returns false to skip the message because our adsid is wrong
+/// Whether Grand Slam has signed in during this process. A restored account carries only the
+/// credential until then; the account identifiers arrive with the first successful sign-in.
+fn has_gsa_session(account: &AppleAccount<DefaultAnisetteProvider>) -> bool {
+    account.persisted.as_ref().is_some_and(|p| !p.adsid.is_empty())
+}
+
 async fn handle_2fa(state: &SharedPushState, signin: &IdmsRequestedSignIn) -> bool {
     let Some(services) = &state.icloud_services else {
         warn!("Ignoring circle message for no account!");
@@ -1696,15 +1699,15 @@ async fn handle_2fa(state: &SharedPushState, signin: &IdmsRequestedSignIn) -> bo
     let account = &services.account;
 
     let mut lock = account.lock().await;
-    if lock.spd.is_none() {
+    if !has_gsa_session(&lock) {
         // trigger gsa flow
         lock.get_token("com.apple.gs.idms.pet").await;
-        if lock.spd.is_none() {
+        if !has_gsa_session(&lock) {
             warn!("Dropping message because GSA flow failed!");
             return false;
         }
     }
-    let adsid = lock.spd.as_ref().unwrap().get("adsid").expect("no adsid???s").as_string().unwrap();
+    let adsid = &lock.persisted.as_ref().unwrap().adsid;
     if adsid != &signin.adsid {
         warn!("Dropping 2fa code for account because adsid is wrong {adsid} {}", signin.adsid);
         return false;
@@ -1750,15 +1753,15 @@ async fn handle_circle(state: &SharedPushState, signin: &Option<IdmsRequestedSig
         };
 
         let mut lock = account.account.lock().await;
-        if lock.spd.is_none() {
+        if !has_gsa_session(&lock) {
             // trigger gsa flow
             lock.get_token("com.apple.gs.idms.pet").await;
-            if lock.spd.is_none() {
+            if !has_gsa_session(&lock) {
                 warn!("Dropping message because GSA flow failed!");
                 return;
             }
         }
-        let dsid = lock.spd.as_ref().unwrap().get("DsPrsId").expect("no dsid???s").as_unsigned_integer().unwrap();
+        let dsid = lock.persisted.as_ref().unwrap().dsid;
         drop(lock);
 
         let mut rng = rand::thread_rng();
@@ -2246,6 +2249,17 @@ impl GSAConfig {
         Ok(encoded)
     }
 
+    /// What Grand Slam needs to sign back in. Tokens and account identifiers are not kept on disk;
+    /// the first token request signs in again and fills them in.
+    fn to_persisted(&self) -> PersistAccountData {
+        PersistAccountData {
+            username: self.username.clone(),
+            hashed_password: self.get_password().unwrap_or_default(),
+            postdata_done: self.postdata_done,
+            ..Default::default()
+        }
+    }
+
     fn encrypt(password: &[u8]) -> Result<Data, PushError> {
         let key = AesKeystoreKey::ensure(&format!("gsa:password"), 256, KeystoreAccessRules {
             block_modes: vec![EncryptMode::Gcm],
@@ -2303,12 +2317,13 @@ pub async fn do_login(path: String, account: &Arc<Mutex<AppleAccount<DefaultAnis
     account.update_postdata("Apple Device", None, &["imessage", "facetime"]).await?;
     
     let Some(pet) = account.get_pet() else { return Err(anyhow!("No pet!")) };
-    let Some(spd) = &account.spd else { return Err(anyhow!("No spd!")) };
+    let Some(persisted) = account.persisted.as_ref().filter(|p| !p.adsid.is_empty()) else { return Err(anyhow!("No spd!")) };
 
     debug!("Received Apple account session metadata");
-    let acname = spd.get("acname").ok_or(anyhow!("No acname!"))?.as_string().unwrap().to_string();
-    let dsid = spd.get("DsPrsId").ok_or(anyhow!("No dsid!"))?.as_unsigned_integer().unwrap().to_string();
-    let adsid = spd.get("adsid").ok_or(anyhow!("No adsid!"))?.as_string().unwrap();
+    let acname = persisted.username.clone();
+    let dsid = persisted.dsid.to_string();
+    let adsid = persisted.adsid.clone();
+    let hashed_password = persisted.hashed_password.clone();
     
     // iMessage-only build: request just the IDS delegate. The MobileMe (iCloud) delegate is what
     // Apple refuses for an emulated device (ICLOUD_UNSUPPORTED_DEVICE), and iMessage/SMS needs none
@@ -2322,8 +2337,8 @@ pub async fn do_login(path: String, account: &Arc<Mutex<AppleAccount<DefaultAnis
     
     
     plist::to_file_xml(conf_dir.join("gsa.plist"), &GSAConfig {
-        username: account.username.clone().unwrap(),
-        encrypted_password: GSAConfig::encrypt(&account.hashed_password.clone().unwrap())?,
+        username: acname.clone(),
+        encrypted_password: GSAConfig::encrypt(&hashed_password)?,
         postdata_done: Some(true),
     }).unwrap();
 
@@ -2394,7 +2409,7 @@ pub async fn try_auth(path: String, conf: &JoinedOSConfig, conn: &APSConnection,
     let conf_dir = PathBuf::from_str(&path).unwrap();
     info!("Here");
     let mut apple_account =
-        AppleAccount::new_with_anisette(get_login_config(&conf_dir, conf, conn).await, anisette.clone())?;
+        AppleAccount::new_with_anisette(get_login_config(&conf_dir, conf, conn).await, anisette.clone(), None, Box::new(|_| {}))?;
     
     let result = if let Some((username, password)) = creds {
         reset_user(&path);
@@ -2446,8 +2461,7 @@ pub async fn auth_phone(conn: &APSConnection, config: &JoinedOSConfig, number: S
 pub async fn send_2fa_to_devices(state: &Arc<Mutex<AppleAccount<DefaultAnisetteProvider>>>, conn: &APSConnection) -> anyhow::Result<(CircleClientSession<DefaultAnisetteProvider>, LoginState, Option<String>)> {
     let account = state.lock().await;
 
-    let spd = account.spd.as_ref().unwrap();
-    let dsid = spd["DsPrsId"].as_unsigned_integer().unwrap();
+    let dsid = account.persisted.as_ref().ok_or(anyhow!("Not signed in!"))?.dsid;
 
     drop(account);
 

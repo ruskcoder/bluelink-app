@@ -14,6 +14,7 @@ use serde::{Deserialize, Serialize};
 use tokio::{io::{AsyncRead, AsyncReadExt, AsyncWriteExt, ReadHalf, WriteHalf, split}, net::{TcpListener, TcpStream}, select, sync::{broadcast::{self, Receiver, Sender, error::RecvError}, mpsc}, task::{self, JoinHandle}};
 use tokio_rustls::{TlsAcceptor, TlsConnector, client::TlsStream, rustls::pki_types::ServerName};
 use async_recursion::async_recursion;
+use tokio_util::task::AbortOnDropHandle;
 
 use crate::{OSConfig, PushError, activation::activate, auth::{NonceType, do_ids_signature, generate_nonce}, imessage::messages, statuskit::statuskitp::{Channel, SubscribeToChannel, SubscribedTopic}, util::{APNS_BAG, BinaryReadExt, DebugMutex, DebugRwLock, KeyPair, KeyPairNew, Resource, ResourceManager, base64_encode, bin_deserialize, bin_deserialize_opt, bin_serialize, bin_serialize_opt, decode_hex, encode_hex, get_bag, plist_to_bin}};
 
@@ -237,7 +238,8 @@ impl APSPackedEncoder {
         } else {
             // search in tag cache
             if let Some(existing) = self.key_table.get_buf_idx(&attribute.id) {
-                self.write_tagged_value(5, existing as u64, 0x20 | flags, writer)?;
+                info!("Using kcache {existing}");
+                writer.write_all(&[0x20 | flags | existing as u8])?;
             } else {
                 self.write_tagged_value(4, attribute.id.len() as u64 - 1, 0x10 | flags, writer)?;
 
@@ -248,6 +250,7 @@ impl APSPackedEncoder {
 
         // actually write the value
         if let Some(existing) = existing {
+            info!("Using vcache {existing}");
             self.write_tagged_value(8, existing as u64, 0, writer)?;
         } else if let Some(cached_buf) = cached_buf {
             writer.write_all(&cached_buf)?;
@@ -946,6 +949,148 @@ impl APSMessage {
 
 
 #[tokio::test]
+async fn replay_test() {
+    use keystore::{init_keystore, software::{SoftwareKeystore, NoEncryptor}};
+    init_keystore(SoftwareKeystore {
+        state: plist::from_file("jerrytest/keystore.plist").unwrap(),
+        update_state: Box::new(|state| {
+            plist::to_file_xml("jerrytest/keystore.plist", state).unwrap();
+        }),
+        encryptor: NoEncryptor,
+    });
+
+    if let Err(_) = std::env::var("RUST_LOG") {
+        std::env::set_var("RUST_LOG", "debug");
+    }
+    let _ = pretty_env_logger::try_init();
+
+    let state_path = std::env::var("APS_REPLAY_STATE")
+        .unwrap_or_else(|_| if std::path::Path::new("jerrytest/push.plist").exists() {
+            "jerrytest/push.plist".to_string()
+        } else {
+            "jerrytest/push.plist".to_string()
+        });
+    let log_path = std::env::var("APS_REPLAY_LOG")
+        .unwrap_or_else(|_| if std::path::Path::new("jerrytest/replaytest.log").exists() {
+            "jerrytest/replaytest.log".to_string()
+        } else {
+            "jerrytest/replaytest.log".to_string()
+        });
+
+    let mut state: APSState = plist::from_file(&state_path).unwrap();
+    let pair = state.keypair.as_ref().expect("replay APS state must already contain a keypair");
+
+    let (socket, encoder, mut decoder) = open_socket().await.unwrap();
+    let (mut read, write) = split(socket);
+    let (send, _) = tokio::sync::broadcast::channel(999);
+    let socket = Arc::new(DebugMutex::new(Some((write, encoder))));
+
+    let reader_send = send.clone();
+    let mut reader = task::spawn(async move {
+        loop {
+            match APSMessage::read_from_stream(&mut read, &mut decoder).await {
+                Ok(Some(msg)) => {
+                    let _ = reader_send.send(msg);
+                },
+                Ok(None) => {},
+                Err(err) => {
+                    return Err(err);
+                }
+            };
+        }
+
+        #[allow(unreachable_code)]
+        Ok::<(), PushError>(())
+    });
+
+    let nonce = generate_nonce(NonceType::APNS);
+    let signature = do_ids_signature(&pair.private, &nonce).unwrap();
+    let mut recv = send.subscribe();
+    replay_send(&socket, APSMessage::Connect {
+        flags: 0b01000001,
+        certificate: Some(pair.cert.clone()),
+        nonce: Some(nonce),
+        signature: Some(signature),
+        token: state.token,
+    }).await.unwrap();
+
+    let (token, status) = tokio::time::timeout(Duration::from_secs(15), async {
+        loop {
+            if let APSMessage::ConnectResponse { token, status } = recv.recv().await.unwrap() {
+                return (token, status);
+            }
+        }
+    }).await.unwrap();
+
+    assert_eq!(status, 0, "APS connect failed with status {status}");
+    if let Some(token) = token {
+        state.token = Some(token);
+    }
+
+    let replay = std::fs::read_to_string(&log_path).unwrap();
+    let mut sent = 0usize;
+    let mut skipped_first_send = false;
+    for (line_index, line) in replay.lines().enumerate() {
+        let Some((_, rest)) = line.split_once("Sending \"") else {
+            continue;
+        };
+        if !skipped_first_send {
+            skipped_first_send = true;
+            continue;
+        }
+        if sent >= 0 {
+            break;
+        }
+        let Some((hex, _)) = rest.split_once('"') else {
+            panic!("bad Sending line {}: missing closing quote", line_index + 1);
+        };
+        info!("Sending {}", sent + 1);
+        let bytes = decode_hex(hex).unwrap();
+        let message: APSMessage = plist::from_bytes(&bytes).unwrap();
+        replay_send(&socket, message).await.unwrap();
+        sent += 1;
+    }
+
+    assert!(skipped_first_send, "no Sending lines found in {log_path}");
+    info!("replayed {sent} APS messages from {log_path}");
+
+    tokio::select! {
+        result = &mut reader => {
+            match result {
+                Ok(Ok(())) => panic!("replay APS reader ended before observation window ended"),
+                Ok(Err(err)) => panic!("replay APS reader stopped before observation window ended: {err}"),
+                Err(err) => panic!("replay APS reader task failed before observation window ended: {err}"),
+            }
+        }
+        _ = tokio::time::sleep(Duration::from_secs(5)) => {}
+    }
+
+    reader.abort();
+}
+
+#[cfg(test)]
+async fn replay_send(
+    socket: &DebugMutex<Option<(WriteHalf<TlsStream<TcpStream>>, Option<APSPackedEncoder>)>>,
+    message: APSMessage,
+) -> Result<(), PushError> {
+    let mut socket_guard = socket.lock().await;
+    let socket = socket_guard.as_mut().ok_or(PushError::NotConnected)?;
+    if let Some(encoder) = &mut socket.1 {
+        let mut buf = vec![];
+        encoder.encode_message(message.to_packed_raw(), Cursor::new(&mut buf))?;
+        socket.0.write_all(&buf).await?;
+    } else {
+        let mut raw = message.to_raw();
+        for message in &mut raw.body {
+            message.update()?;
+        }
+        raw.update()?;
+        socket.0.write_all(&raw.to_bytes()?).await?;
+    }
+    Ok(())
+}
+
+#[tokio::test]
 async fn proxy() {
     if let Err(_) = std::env::var("RUST_LOG") {
         std::env::set_var("RUST_LOG", "debug");
@@ -1071,10 +1216,14 @@ const APNS_PORT: u16 = 5223;
 const WAIT_PATIENCE: Duration = Duration::from_secs(30);
 
 async fn open_socket() -> Result<(TlsStream<TcpStream>, Option<APSPackedEncoder>, Option<APSPackedDecoder>), PushError> {
-    let certs = rustls_pemfile::certs(&mut Cursor::new(include_bytes!("../certs/root/profileidentity.ess.apple.com.cert")))?;
-
     let mut root_store = RootCertStore::empty();
-    root_store.add(CertificateDer::from_slice(&certs.into_iter().nth(0).unwrap()))?;
+    for der in [
+        include_bytes!("../certs/root/AppleIncRootCertificate.cer").as_slice(),
+        include_bytes!("../certs/root/AppleRootCA-G2.cer").as_slice(),
+        include_bytes!("../certs/root/AppleRootCA-G3.cer").as_slice(),
+    ] {
+        root_store.add(CertificateDer::from_slice(der))?;
+    }
     let mut config: ClientConfig = ClientConfig::builder()
         .with_root_certificates(root_store)
         .with_no_client_auth();
@@ -1099,11 +1248,16 @@ async fn open_socket() -> Result<(TlsStream<TcpStream>, Option<APSPackedEncoder>
     if let Some(protocol) = stream.get_ref().1.alpn_protocol() {
         let protocol = std::str::from_utf8(protocol).unwrap();
         if protocol.starts_with("apns-pack-v1") {
-            let mut parts = protocol.split(":");
-            let encoder_count: usize = parts.nth(1).expect("Bad ALPN1!").parse().expect("Bad alpn3!");
-            let decoder_count: usize = parts.next().expect("Bad ALPN2!").parse().expect("Bad alpn4!");
-            encoder = Some(APSPackedEncoder::new_with_cache_size(encoder_count));
-            decoder = Some(APSPackedDecoder::new_with_cache_size(decoder_count));
+            if protocol.contains(":") {
+                let mut parts = protocol.split(":");
+                let encoder_count: usize = parts.nth(1).expect("Bad ALPN1!").parse().expect("Bad alpn3!");
+                let decoder_count: usize = parts.next().expect("Bad ALPN2!").parse().expect("Bad alpn4!");
+                encoder = Some(APSPackedEncoder::new_with_cache_size(encoder_count));
+                decoder = Some(APSPackedDecoder::new_with_cache_size(decoder_count));
+            } else {
+                encoder = Some(APSPackedEncoder::default());
+                decoder = Some(APSPackedDecoder::default());
+            }
         }
     }
 
@@ -1111,7 +1265,7 @@ async fn open_socket() -> Result<(TlsStream<TcpStream>, Option<APSPackedEncoder>
 }
 
 impl Resource for APSConnectionResource {
-    async fn generate(self: &Arc<Self>) -> Result<JoinHandle<()>, PushError> {
+    async fn generate(self: &Arc<Self>) -> Result<AbortOnDropHandle<()>, PushError> {
         info!("Generating APS");
         let (socket, encoder, mut decoder) = match open_socket().await {
             Ok(e) => e,
@@ -1131,7 +1285,7 @@ impl Resource for APSConnectionResource {
         info!("Locked socket");
 
         let maintenance_self = self.clone();
-        let maintenence_handle = task::spawn(async move {
+        let maintenence_handle = AbortOnDropHandle::new(task::spawn(async move {
             loop {
                 match APSMessage::read_from_stream(&mut read, &mut decoder).await {
                     Ok(Some(msg)) => {
@@ -1145,7 +1299,7 @@ impl Resource for APSConnectionResource {
                     }
                 };
             }
-        });
+        }));
 
         if let Err(err) = self.clone().do_connect().await {
             error!("failed to connect {err}!");
@@ -1340,7 +1494,7 @@ impl APSConnectionResource {
         // Listened for before the attempt, so a reconnect that finishes while the send is still
         // failing is not missed.
         let manager = self.get_manager().await;
-        let mut reconnected = manager.generated_signal.subscribe();
+        let mut reconnected = manager.as_ref().map(|manager| manager.generated_signal.subscribe());
         if let Err(err) = self.send(notification.clone()).await {
             // Only a failure of the connection itself. Anything else would fail the same way twice.
             if !matches!(err, PushError::IoError(_) | PushError::NotConnected | PushError::ResourceFailure(_)) {
@@ -1351,6 +1505,8 @@ impl APSConnectionResource {
             // not a failed send yet — it is a send with no connection, and the connection is on its
             // way. Wait for it and say the same thing again, rather than handing the caller an
             // error that pressing "retry" a second later would have avoided.
+            // Without a manager the connection is being torn down, and nothing will bring it back.
+            let (Some(manager), Some(reconnected)) = (&manager, &mut reconnected) else { return Err(err) };
             warn!("push send refused ({err}); waiting for the connection to come back");
             manager.request_update_now().await;
             if tokio::time::timeout(Duration::from_secs(10), reconnected.recv()).await.is_err() {
@@ -1424,22 +1580,21 @@ impl APSConnectionResource {
         }
     }
 
-    async fn get_manager(&self) -> APSConnection {
-        self.manager.lock().await.as_ref().unwrap().upgrade().unwrap()
+    async fn get_manager(&self) -> Option<APSConnection> {
+        self.manager.lock().await.as_ref().and_then(|manager| manager.upgrade())
     }
 
     async fn do_reload(&self) {
-        self.get_manager().await.request_update().await;
+        let Some(manager) = self.get_manager().await else { return };
+        manager.request_update().await;
     }
 
     pub async fn send(&self, message: APSMessage) -> Result<(), PushError> {
         info!("Attempting to send");
         // during init can be none
-        let manager_lock = self.manager.lock().await;
-        if let Some(manager_lock) = &*manager_lock {
-            manager_lock.upgrade().unwrap().ensure_not_failed()?;
+        if let Some(manager) = self.get_manager().await {
+            manager.ensure_not_failed()?;
         }
-        drop(manager_lock);
 
         let mut socket_guard = self.socket.lock().await;
         let socket = socket_guard.as_mut().ok_or(PushError::NotConnected)?;
@@ -1448,7 +1603,8 @@ impl APSConnectionResource {
 
             let mut buf = vec![];
             encoder.encode_message(message.to_packed_raw(), Cursor::new(&mut buf))?;
-
+            
+            debug!("Sendin2g {:?}", encode_hex(&buf));
             socket.0.write_all(&buf).await
         } else {
             let mut raw = message.to_raw();

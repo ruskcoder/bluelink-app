@@ -353,12 +353,16 @@ async fn main() {
             input.trim().to_string()
         };
         
-        let mut account = AppleAccount::new_with_anisette(config.get_gsa_config(&*connection.state.read().await, false), anisette_client.clone()).unwrap();
+        let mut account = AppleAccount::new_with_anisette(
+            config.get_gsa_config(&*connection.state.read().await, false),
+            anisette_client.clone(),
+            None,
+            Box::new(|_| {}),
+        ).unwrap();
         let result = account.login_email_pass(&gsa.user, gsa.pass.as_ref()).await.unwrap();
 
 
-        let spd = account.spd.as_ref().unwrap();
-        let dsid = spd["DsPrsId"].as_unsigned_integer().unwrap();
+        let dsid = account.persisted.as_ref().unwrap().dsid;
 
         // account.send_2fa_to_devices().await.unwrap();
         // let result = account.verify_2fa(tfa_closure()).await.unwrap();
@@ -402,28 +406,30 @@ async fn main() {
 
         // account.update_postdata("Testing").await.unwrap();
         let pet = account.get_pet().unwrap();
-        let spd = account.spd.as_ref().unwrap();
+        let persisted = account.persisted.as_ref().unwrap();
+        let dsid = persisted.dsid.to_string();
+        let adsid = persisted.adsid.clone();
 
-        let delegates = login_apple_delegates(&gsa.user, &pet, spd["adsid"].as_string().unwrap(), None, &mut *anisette_client.lock().await, config.as_ref(), &[LoginDelegate::IDS, LoginDelegate::MobileMe]).await.unwrap();
+        let delegates = login_apple_delegates(&account, None, config.as_ref(), &[LoginDelegate::IDS, LoginDelegate::MobileMe]).await.unwrap();
         let user = authenticate_apple(delegates.ids.unwrap(), config.as_ref()).await.unwrap();
 
         let mobileme = delegates.mobileme.unwrap();
-        let findmy = FindMyState::new(spd["DsPrsId"].as_unsigned_integer().unwrap().to_string());
+        let findmy = FindMyState::new(dsid.clone());
 
         let id_path = PathBuf::from_str("findmy.plist").unwrap();
         std::fs::write(id_path, findmy.encode().unwrap()).unwrap();
 
-        let sharedstreams = SharedStreamsState::new(spd["DsPrsId"].as_unsigned_integer().unwrap().to_string(), &mobileme);
+        let sharedstreams = SharedStreamsState::new(dsid.clone(), &mobileme);
 
         let id_path = PathBuf::from_str("sharedstreams.plist").unwrap();
         std::fs::write(id_path, plist_to_string(&sharedstreams).unwrap()).unwrap();
 
-        let trustedpeers = KeychainClientState::new(spd["DsPrsId"].as_unsigned_integer().unwrap().to_string(), spd["adsid"].as_string().unwrap().to_string(), &mobileme);
+        let trustedpeers = KeychainClientState::new(dsid.clone(), adsid, &mobileme);
 
         let id_path = PathBuf::from_str("trustedpeers.plist").unwrap();
         std::fs::write(id_path, plist_to_string(&trustedpeers).unwrap()).unwrap();
 
-        let cloudkitstate = CloudKitState::new(spd["DsPrsId"].as_unsigned_integer().unwrap().to_string());
+        let cloudkitstate = CloudKitState::new(dsid);
         let id_path = PathBuf::from_str("cloudkit.plist").unwrap();
         std::fs::write(id_path, plist_to_string(&cloudkitstate).unwrap()).unwrap();
 
@@ -505,7 +511,12 @@ async fn main() {
     let id_path = PathBuf::from_str("cloudkit.plist").unwrap();
     let state: CloudKitState = plist::from_file(&id_path).unwrap();
 
-    let token_provider = TokenProvider::new(account.clone(), config.clone());
+    let token_provider = TokenProvider::new(
+        account.clone(),
+        config.clone(),
+        Default::default(),
+        Box::new(|_| {}),
+    );
 
     let cloudkit = Arc::new(CloudKitClient {
         state: DebugRwLock::new(state),
@@ -605,10 +616,10 @@ async fn main() {
     token_provider.clone(), anisette_client.clone(), client.identity.clone()).await.unwrap();
 
     let state: PasswordState = plist::from_file("passwords.plist").unwrap_or_default();
-    let passwords = PasswordManager::new(
-        keychain.clone(), cloudkit.clone(), client.identity.clone(), connection.clone(), state, Box::new(move |state| {
-            plist::to_file_xml("passwords.plist", state).unwrap();
-        })).await;
+    // let passwords = PasswordManager::new(
+    //     keychain.clone(), cloudkit.clone(), client.identity.clone(), connection.clone(), state, Box::new(move |state| {
+    //         plist::to_file_xml("passwords.plist", state).unwrap();
+    //     })).await;
 
 
     if let Some(mut s) = session {
@@ -933,9 +944,9 @@ async fn main() {
         tokio::select! {
             msg = subscription.recv() => {
                 let msg = msg.unwrap();
-                if let Err(e) = passwords.handle(msg.clone()).await {
-                    info!("err {e}");
-                }
+                // if let Err(e) = passwords.handle(msg.clone()).await {
+                //     info!("err {e}");
+                // }
                 // if let Err(e) = findmy_client.handle(msg.clone()).await {
                 //     info!("err {e}");
                 // }

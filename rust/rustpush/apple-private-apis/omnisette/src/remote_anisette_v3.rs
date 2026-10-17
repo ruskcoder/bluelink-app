@@ -409,10 +409,12 @@ impl AnisetteClient {
                         struct EndProvisioning {
                             ptm: String,
                             tk: String,
+                            rinfo: String,
                         }
                         let end_provisioning = EndProvisioning {
                             ptm: require_str(&response, "ptm", "midFinishProvisioning", &text)?,
                             tk: require_str(&response, "tk", "midFinishProvisioning", &text)?,
+                            rinfo: require_str(&response, "X-Apple-I-MD-RINFO", "midFinishProvisioning", &text)?,
                         };
                         connection.send(Message::Text(serde_json::to_string(&end_provisioning)?)).await?;
                     },

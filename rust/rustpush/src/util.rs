@@ -11,7 +11,7 @@ use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 use backon::{BackoffBuilder, ExponentialBuilder, Retryable};
 use base64::engine::general_purpose;
-use deku::{DekuContainerRead, DekuContainerWrite, DekuRead, DekuUpdate, DekuWrite};
+use deku::prelude::*;
 use hkdf::hmac::Hmac;
 use keystore::KeystorePublicKey;
 use libflate::gzip::{HeaderBuilder, EncodeOptions, Encoder, Decoder};
@@ -43,6 +43,7 @@ use tokio::sync::{Mutex, MutexGuard, RwLock, RwLockReadGuard, RwLockWriteGuard, 
 use tokio::task::JoinHandle;
 use tokio::time::error::Elapsed;
 use tokio_rustls::client;
+use tokio_util::task::AbortOnDropHandle;
 use uuid::Uuid;
 use std::io::{Write, Read};
 use std::fmt::{Debug, Display, Write as FmtWrite};
@@ -218,18 +219,13 @@ fn build_proxy() -> Client {
         .build().unwrap()
 }
 
-
-pub static REQWEST: LazyLock<Client> = LazyLock::new(|| {
+pub static REQWEST_NO_TIMEOUT: LazyLock<Client> = LazyLock::new(|| {
     // return build_proxy();
-    let certificates = vec![
-        Certificate::from_pem(include_bytes!("../certs/root/profileidentity.ess.apple.com.cert")).unwrap(),
-        Certificate::from_pem(include_bytes!("../certs/root/init.ess.apple.com.cert")).unwrap(),
-    ];
     let mut headers = HeaderMap::new();
     headers.insert("Accept-Language", HeaderValue::from_static("en-US,en;q=0.9"));
 
 
-    let mut builder = reqwest::Client::builder()
+    reqwest::Client::builder()
         .use_rustls_tls()
         .default_headers(headers.clone())
         .http1_title_case_headers()
@@ -240,13 +236,32 @@ pub static REQWEST: LazyLock<Client> = LazyLock::new(|| {
         // reused after that swallows a request whole.
         .connect_timeout(Duration::from_secs(15))
         .tcp_keepalive(Duration::from_secs(30))
-        .pool_idle_timeout(Duration::from_secs(20));
+        .pool_idle_timeout(Duration::from_secs(20))
+        .add_root_certificate(Certificate::from_der(include_bytes!("../certs/root/AppleIncRootCertificate.cer")).unwrap())
+        .add_root_certificate(Certificate::from_der(include_bytes!("../certs/root/AppleRootCA-G2.cer")).unwrap())
+        .add_root_certificate(Certificate::from_der(include_bytes!("../certs/root/AppleRootCA-G3.cer")).unwrap())
+        .build().unwrap()
+});
 
-    for certificate in certificates.into_iter() {
-        builder = builder.add_root_certificate(certificate);
-    }
 
-    builder.build().unwrap()
+pub static REQWEST: LazyLock<Client> = LazyLock::new(|| {
+    // return build_proxy();
+    let mut headers = HeaderMap::new();
+    headers.insert("Accept-Language", HeaderValue::from_static("en-US,en;q=0.9"));
+
+
+    reqwest::Client::builder()
+        .use_rustls_tls()
+        .default_headers(headers.clone())
+        .http1_title_case_headers()
+        .connect_timeout(Duration::from_secs(15))
+        .tcp_keepalive(Duration::from_secs(30))
+        .pool_idle_timeout(Duration::from_secs(20))
+        .timeout(Duration::from_secs(180))
+        .add_root_certificate(Certificate::from_der(include_bytes!("../certs/root/AppleIncRootCertificate.cer")).unwrap())
+        .add_root_certificate(Certificate::from_der(include_bytes!("../certs/root/AppleRootCA-G2.cer")).unwrap())
+        .add_root_certificate(Certificate::from_der(include_bytes!("../certs/root/AppleRootCA-G3.cer")).unwrap())
+        .build().unwrap()
 });
 
 pub static CARRIER_REQWEST: LazyLock<Client> = LazyLock::new(|| {
@@ -567,6 +582,23 @@ pub fn ungzip(bytes: &[u8]) -> Result<Vec<u8>, std::io::Error> {
     Ok(decoded_data)
 }
 
+pub fn inflate(bytes: &[u8]) -> Result<Vec<u8>, std::io::Error> {
+    use libflate::zlib::Decoder;
+    let mut decoder = Decoder::new(bytes)?;
+    let mut decoded_data = Vec::new();
+    decoder.read_to_end(&mut decoded_data)?;
+    Ok(decoded_data)
+}
+
+pub fn deflate(bytes: &[u8]) -> Result<Vec<u8>, std::io::Error> {
+    use libflate::zlib::Encoder;
+    let mut decoded_data = Vec::new();
+    let mut decoder = Encoder::new(Cursor::new(&mut decoded_data))?;
+    decoder.write_all(bytes)?;
+    decoder.finish().into_result()?;
+    Ok(decoded_data)
+}
+
 pub fn duration_since_epoch() -> Duration {
     SystemTime::now()
         .duration_since(UNIX_EPOCH)
@@ -882,9 +914,9 @@ impl EntitlementAuthState {
 
 pub trait Resource: Send + Sync + Sized {
     // resolve when resource is done, on a timeout of RESOURCE_GENERATE_TIMEOUT (currently 5 minutes)
-    fn generate(self: &Arc<Self>) -> impl std::future::Future<Output = Result<JoinHandle<()>, PushError>> + Send;
+    fn generate(self: &Arc<Self>) -> impl std::future::Future<Output = Result<AbortOnDropHandle<()>, PushError>> + Send;
 
-    fn generate_unwind_safe(self: &Arc<Self>) -> impl std::future::Future<Output = Result<JoinHandle<()>, PushError>> + Send {
+    fn generate_unwind_safe(self: &Arc<Self>) -> impl std::future::Future<Output = Result<AbortOnDropHandle<()>, PushError>> + Send {
         async {
             std::panic::AssertUnwindSafe(self.generate())
                 .catch_unwind().await
@@ -957,7 +989,7 @@ pub enum ResourceState {
 }
 
 impl<T: Resource + 'static> ResourceManager<T> {
-    pub fn new<B: BackoffBuilder + 'static>(name: &'static str, resource: Arc<T>, backoff: B, generate_timeout: Duration, running_resource: Option<JoinHandle<()>>) -> Arc<ResourceManager<T>> {
+    pub fn new<B: BackoffBuilder + 'static>(name: &'static str, resource: Arc<T>, backoff: B, generate_timeout: Duration, running_resource: Option<AbortOnDropHandle<()>>) -> Arc<ResourceManager<T>> {
         let (retry_send, _) = broadcast::channel::<Result<(), ResourceFailure>>(9999);
         let (sig_send, mut sig_recv) = mpsc::channel(1);
         let (retry_now_send, mut retry_now_recv) = mpsc::channel(1);
@@ -976,7 +1008,7 @@ impl<T: Resource + 'static> ResourceManager<T> {
             resource_state: watch::channel(if running_resource.is_some() { ResourceState::Generated } else { ResourceState::Generating }).0,
         });
 
-        let mut current_resource = running_resource.unwrap_or_else(|| tokio::spawn(async {}));
+        let mut current_resource = running_resource.unwrap_or_else(|| AbortOnDropHandle::new(tokio::spawn(async {})));
 
         let resource_name = manager.name;
         let resource_state = manager.resource_state.clone();
@@ -2644,6 +2676,17 @@ pub trait BinaryReadExt: Read {
         let mut buf = [0u8; 4];
         self.read_exact(&mut buf)?;
         Ok(u32::from_be_bytes(buf))
+    }
+
+    fn read_u64_be(&mut self) -> io::Result<u64> {
+        let mut buf = [0u8; 8];
+        self.read_exact(&mut buf)?;
+        Ok(u64::from_be_bytes(buf))
+    }
+
+    fn read_u16_vec_be(&mut self) -> io::Result<Vec<u16>> {
+        let count = self.read_u8_exact()? as usize;
+        (0..count).map(|_| self.read_u16_be()).collect()
     }
 
     fn read_n(&mut self, n: usize) -> io::Result<Vec<u8>> {
