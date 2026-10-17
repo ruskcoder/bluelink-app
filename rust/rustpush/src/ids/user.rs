@@ -404,7 +404,7 @@ fn derive_hkdf_key_iv(secret: &[u8]) -> Result<([u8; 32], [u8; 16]), PushError> 
 pub struct IDSNGMIdentity {
     legacy: IDSUserIdentity,
     #[serde(serialize_with = "ec_serialize_priv", deserialize_with = "ec_deserialize_priv_compact")]
-    device_key: CompactECKey<Private>,
+    pub device_key: CompactECKey<Private>,
     #[serde(serialize_with = "ec_serialize_priv", deserialize_with = "ec_deserialize_priv_compact")]
     pre_key: CompactECKey<Private>,
 }
@@ -856,6 +856,8 @@ impl IDSUser {
 
         let devices = parsed.as_dictionary().unwrap().get("registrations").unwrap().as_array().unwrap();
 
+        info!("Dependent registrations {devices:?}");
+
         Ok(devices.iter().filter_map(|dev| {
             let dict = dev.as_dictionary().unwrap();
             if dict.get("service").unwrap().as_string().unwrap() != "com.apple.madrid" {
@@ -925,7 +927,7 @@ impl IDSUser {
                     is_self: false,
                     message_attachment_info: report.parts.0.iter().filter_map(|part| {
                         let MessagePart::Attachment(a) = &part.part else { return None };
-                        let m = if let AttachmentType::MMCS(m) = &a.a_type { Some(m) } else { None };
+                        let m = if let AttachmentType::MMCS(m) = &a.a_type { m.iter().max_by_key(|i| i.size) } else { None };
                         Some(IDSReportedAttachment {
                             mmcs_uti_type: a.uti_type.clone(),
                             mmcs_owner_id: m.map(|a| a.object.clone()),
@@ -969,14 +971,13 @@ impl IDSUser {
             .header("x-id-self-uri", handle)
             .header("x-push-token", &base64_encode(&aps.get_token().await))
             .header("x-protocol-version", &self.protocol_version.to_string())
-            .header("user-agent", &format!("com.apple.madrid-lookup {}", config.get_version_ua()));
+            .header("user-agent", &format!("com.apple.madrid-lookup {}", config.get_version_ua()))
+            .body(gzip(&body)?);
         if main_topic != topic {
             request = request.header("x-id-sub-service", topic);
         }
-        let request = request
-            .body(gzip(&body)?)
-            .sign(&self.registration[main_topic].id_keypair, KeyType::Id, &*aps.state.read().await, None)?
-            .send_apns(aps, topic).await;
+        let request = request.sign(&self.registration[main_topic].id_keypair, KeyType::Id, &*aps.state.read().await, None)?;
+        let request = request.send_apns_i_am_not_reading_the_aps_state(aps, topic).await;
 
         if let Err(PushError::WebTunnelError(5206 /* Response too large */)) = &request {
             info!("response too large, chopping in half!");

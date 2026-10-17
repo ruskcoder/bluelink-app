@@ -39,7 +39,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.3.0";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -1267927268;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 763231400;
 
 // Section: executor
 
@@ -2947,6 +2947,7 @@ fn wire__crate__api__api__create_facetime_impl(
             let api_uuid = <String>::sse_decode(&mut deserializer);
             let api_handle = <String>::sse_decode(&mut deserializer);
             let api_participants = <Vec<String>>::sse_decode(&mut deserializer);
+            let api_is_video = <bool>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| async move {
                 transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
@@ -2975,6 +2976,7 @@ fn wire__crate__api__api__create_facetime_impl(
                             api_uuid,
                             api_handle,
                             api_participants,
+                            api_is_video,
                         )
                         .await?;
                         Ok(output_ok)
@@ -6070,6 +6072,59 @@ fn wire__crate__api__api__get_contacts_headers_impl(
                         Ok(output_ok)
                     })()
                     .await,
+                )
+            }
+        },
+    )
+}
+fn wire__crate__api__api__get_device_details_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "get_device_details",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_config = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<JoinedOSConfig>,
+            >>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
+                    (move || {
+                        let mut api_config_guard = None;
+                        let decode_indices_ =
+                            flutter_rust_bridge::for_generated::lockable_compute_decode_order(
+                                vec![flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                    &api_config,
+                                    0,
+                                    false,
+                                )],
+                            );
+                        for i in decode_indices_ {
+                            match i {
+                                0 => api_config_guard = Some(api_config.lockable_decode_sync_ref()),
+                                _ => unreachable!(),
+                            }
+                        }
+                        let api_config_guard = api_config_guard.unwrap();
+                        let output_ok = crate::api::api::get_device_details(&*api_config_guard)?;
+                        Ok(output_ok)
+                    })(),
                 )
             }
         },
@@ -9858,6 +9913,40 @@ fn wire__crate__api__api__query_handle_impl(
                     })()
                     .await,
                 )
+            }
+        },
+    )
+}
+fn wire__crate__api__api__read_gsa_account_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "read_gsa_account",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_path = <String>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, ()>((move || {
+                    let output_ok =
+                        Result::<_, ()>::Ok(crate::api::api::read_gsa_account(api_path))?;
+                    Ok(output_ok)
+                })())
             }
         },
     )
@@ -14424,6 +14513,47 @@ fn wire__crate__api__api__verify_2fa_sms_impl(
         },
     )
 }
+fn wire__crate__api__api__write_gsa_account_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "write_gsa_account",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_path = <String>::sse_decode(&mut deserializer);
+            let api_username = <String>::sse_decode(&mut deserializer);
+            let api_hashed_password = <Vec<u8>>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
+                    (move || {
+                        let output_ok = crate::api::api::write_gsa_account(
+                            api_path,
+                            api_username,
+                            &api_hashed_password,
+                        )?;
+                        Ok(output_ok)
+                    })(),
+                )
+            }
+        },
+    )
+}
 
 // Section: static_checks
 
@@ -14496,7 +14626,7 @@ const _: fn() = || {
             let _: Vec<u8> = field0;
         }
         crate::api::api::AttachmentType::MMCS(field0) => {
-            let _: crate::api::api::MMCSFile = field0;
+            let _: Vec<crate::api::api::MMCSFile> = field0;
         }
     }
     {
@@ -14558,7 +14688,8 @@ const _: fn() = || {
     }
     {
         let ChatProto = None::<crate::api::api::ChatProto>.unwrap();
-        let _: Option<u32> = ChatProto.unk1;
+        let _: Option<u32> = ChatProto.version;
+        let _: Option<u32> = ChatProto.is_recovered;
     }
     {
         let CloudAttachment = None::<crate::api::api::CloudAttachment>.unwrap();
@@ -14589,25 +14720,53 @@ const _: fn() = || {
     {
         let CloudMessage = None::<crate::api::api::CloudMessage>.unwrap();
         let _: Option<SystemTime> = CloudMessage.utm;
-        let _: i64 = CloudMessage.r#type;
         let _: i64 = CloudMessage.error;
         let _: String = CloudMessage.chat_id;
         let _: String = CloudMessage.sender;
         let _: i64 = CloudMessage.time;
-        let _: Option<GZipWrapper<MessageProto2>> = CloudMessage.msg_proto_2;
         let _: String = CloudMessage.destination_caller_id;
-        let _: GZipWrapper<MessageProto> = CloudMessage.msg_proto;
         let _: MessageFlags = CloudMessage.flags;
         let _: String = CloudMessage.guid;
-        let _: Option<GZipWrapper<MessageProto3>> = CloudMessage.msg_proto_3;
         let _: String = CloudMessage.service;
-        let _: Option<GZipWrapper<MessageProto4>> = CloudMessage.msg_proto_4;
+        let _: crate::api::api::CloudMessageType = CloudMessage.message;
     }
     {
         let CloudMessageSummary = None::<crate::api::api::CloudMessageSummary>.unwrap();
         let _: Vec<i64> = CloudMessageSummary.messages_summary;
         let _: Vec<i64> = CloudMessageSummary.chat_summary;
         let _: Vec<i64> = CloudMessageSummary.attachment_summary;
+    }
+    match None::<crate::api::api::CloudMessageType>.unwrap() {
+        crate::api::api::CloudMessageType::Message {
+            reaction,
+            proto,
+            proto2,
+            proto3,
+            proto4,
+        } => {
+            let _: bool = reaction;
+            let _: crate::api::api::MessageProto = proto;
+            let _: Option<crate::api::api::MessageProto2> = proto2;
+            let _: Option<crate::api::api::MessageProto3> = proto3;
+            let _: Option<crate::api::api::MessageProto4> = proto4;
+        }
+        crate::api::api::CloudMessageType::GroupTitleChange { proto } => {
+            let _: crate::api::api::GroupTitleChange = proto;
+        }
+        crate::api::api::CloudMessageType::LocationShareStatusChange { proto } => {
+            let _: crate::api::api::LocationShareStatusChange = proto;
+        }
+        crate::api::api::CloudMessageType::MessageAction { proto } => {
+            let _: crate::api::api::MessageAction = proto;
+        }
+        crate::api::api::CloudMessageType::ParticipantChange { proto, proto2 } => {
+            let _: crate::api::api::ParticipantChange = proto;
+            let _: Option<crate::api::api::ExtraSummaryInfo> = proto2;
+        }
+        crate::api::api::CloudMessageType::GroupAction { proto } => {
+            let _: crate::api::api::GroupAction = proto;
+        }
+        crate::api::api::CloudMessageType::Unknown => {}
     }
     {
         let CloudParticipant = None::<crate::api::api::CloudParticipant>.unwrap();
@@ -14662,6 +14821,11 @@ const _: fn() = || {
         let _: Option<u64> = ExtensionApp.app_id;
         let _: String = ExtensionApp.bundle_id;
         let _: Option<crate::api::api::Balloon> = ExtensionApp.balloon;
+    }
+    {
+        let ExtraSummaryInfo = None::<crate::api::api::ExtraSummaryInfo>.unwrap();
+        let _: Option<Vec<u8>> = ExtraSummaryInfo.message_summary_info;
+        let _: Option<Vec<u8>> = ExtraSummaryInfo.padding;
     }
     {
         let Follow = None::<crate::api::api::Follow>.unwrap();
@@ -14776,6 +14940,12 @@ const _: fn() = || {
         crate::api::api::FTMessage::RespondedElsewhere { guid } => {
             let _: String = guid;
         }
+        crate::api::api::FTMessage::Connected { guid } => {
+            let _: String = guid;
+        }
+        crate::api::api::FTMessage::Disconnected { guid } => {
+            let _: String = guid;
+        }
     }
     {
         let FTParticipant = None::<crate::api::api::FTParticipant>.unwrap();
@@ -14796,10 +14966,28 @@ const _: fn() = || {
         let _: String = FTSession.report_id;
         let _: Option<u64> = FTSession.start_time;
         let _: Option<u64> = FTSession.last_rekey;
-        let _: bool = FTSession.is_propped;
+        let _: u64 = FTSession.creation_time;
         let _: bool = FTSession.is_ringing_inaccurate;
         let _: Option<crate::api::api::FTMode> = FTSession.mode;
+        let _: bool = FTSession.is_video;
         let _: std::collections::HashMap<String, u64> = FTSession.recent_member_adds;
+        let _: Option<Arc<AVSession>> = FTSession.connection;
+        let _: AVConfig = FTSession.av_config;
+        let _: bool = FTSession.is_initiator;
+    }
+    {
+        let GroupAction = None::<crate::api::api::GroupAction>.unwrap();
+        let _: Option<u32> = GroupAction.version;
+        let _: Option<i64> = GroupAction.group_action_type;
+        let _: Option<String> = GroupAction.other_handle;
+        let _: Option<Vec<u8>> = GroupAction.padding;
+    }
+    {
+        let GroupTitleChange = None::<crate::api::api::GroupTitleChange>.unwrap();
+        let _: Option<u32> = GroupTitleChange.version;
+        let _: Option<String> = GroupTitleChange.group_title;
+        let _: Option<String> = GroupTitleChange.other_handle;
+        let _: Option<Vec<u8>> = GroupTitleChange.padding;
     }
     {
         let IMessageNameRecord = None::<crate::api::api::IMessageNameRecord>.unwrap();
@@ -14889,6 +15077,14 @@ const _: fn() = || {
         let _: Option<String> = Location.position_type;
         let _: Option<bool> = Location.is_old;
         let _: Option<bool> = Location.location_finished;
+    }
+    {
+        let LocationShareStatusChange = None::<crate::api::api::LocationShareStatusChange>.unwrap();
+        let _: Option<u32> = LocationShareStatusChange.version;
+        let _: Option<i64> = LocationShareStatusChange.share_status;
+        let _: Option<i64> = LocationShareStatusChange.share_direction;
+        let _: Option<String> = LocationShareStatusChange.other_handle;
+        let _: Option<Vec<u8>> = LocationShareStatusChange.padding;
     }
     match None::<crate::api::api::LoginState>.unwrap() {
         crate::api::api::LoginState::LoggedIn => {}
@@ -15017,6 +15213,15 @@ const _: fn() = || {
             let _: crate::api::api::SetTranscriptBackgroundMessage = field0;
         }
         crate::api::api::Message::Played => {}
+        crate::api::api::Message::RecoverProfile => {}
+    }
+    {
+        let MessageAction = None::<crate::api::api::MessageAction>.unwrap();
+        let _: Option<u32> = MessageAction.version;
+        let _: Option<i64> = MessageAction.message_action_type;
+        let _: Option<String> = MessageAction.other_handle;
+        let _: Option<String> = MessageAction.original_message_guid;
+        let _: Option<Vec<u8>> = MessageAction.padding;
     }
     {
         let MessageEdit = None::<crate::api::api::MessageEdit>.unwrap();
@@ -15063,7 +15268,7 @@ const _: fn() = || {
     }
     {
         let MessageProto = None::<crate::api::api::MessageProto>.unwrap();
-        let _: u32 = MessageProto.unk1;
+        let _: u32 = MessageProto.version;
         let _: Option<String> = MessageProto.subject;
         let _: Option<String> = MessageProto.text;
         let _: Option<Vec<u8>> = MessageProto.attributed_body;
@@ -15072,10 +15277,10 @@ const _: fn() = || {
         let _: Option<Vec<u8>> = MessageProto.message_summary_info;
         let _: Option<String> = MessageProto.effect;
         let _: Option<u64> = MessageProto.date_read;
-        let _: Option<u32> = MessageProto.unk10;
-        let _: Option<u32> = MessageProto.unk11;
+        let _: Option<u32> = MessageProto.time_played;
+        let _: Option<u32> = MessageProto.time_expressive_sent_played;
         let _: Option<u64> = MessageProto.date_delivered;
-        let _: Option<u32> = MessageProto.unk14;
+        let _: Option<u32> = MessageProto.expire_state;
         let _: Option<u32> = MessageProto.associated_message_type;
         let _: Option<String> = MessageProto.associated_message_guid;
         let _: Option<u32> = MessageProto.associated_message_range_location;
@@ -15083,16 +15288,22 @@ const _: fn() = || {
     }
     {
         let MessageProto2 = None::<crate::api::api::MessageProto2>.unwrap();
+        let _: Option<u32> = MessageProto2.version;
         let _: Option<String> = MessageProto2.reply;
+        let _: Option<Vec<u8>> = MessageProto2.padding;
     }
     {
         let MessageProto3 = None::<crate::api::api::MessageProto3>.unwrap();
-        let _: Option<u32> = MessageProto3.unk2;
-        let _: Option<u32> = MessageProto3.unk3;
+        let _: Option<u32> = MessageProto3.version;
+        let _: Option<u32> = MessageProto3.cmm_state;
+        let _: Option<u32> = MessageProto3.cmm_asset_offset;
+        let _: Option<Vec<u8>> = MessageProto3.padding;
     }
     {
         let MessageProto4 = None::<crate::api::api::MessageProto4>.unwrap();
+        let _: Option<u32> = MessageProto4.version;
         let _: Option<String> = MessageProto4.associated_message_emoji;
+        let _: Option<Vec<u8>> = MessageProto4.padding;
         let _: Option<String> = MessageProto4.service;
         let _: Option<u32> = MessageProto4.schedule_type;
         let _: Option<u32> = MessageProto4.schedule_state;
@@ -15140,10 +15351,7 @@ const _: fn() = || {
     }
     {
         let MMCSAttachmentMeta = None::<crate::api::api::MMCSAttachmentMeta>.unwrap();
-        let _: Option<String> = MMCSAttachmentMeta.mmcs_signature_hex;
-        let _: Option<String> = MMCSAttachmentMeta.mmcs_owner;
-        let _: Option<String> = MMCSAttachmentMeta.mmcs_url;
-        let _: Option<String> = MMCSAttachmentMeta.decryption_key;
+        let _: Vec<crate::api::api::MMCSFile> = MMCSAttachmentMeta.files;
         let _: Option<String> = MMCSAttachmentMeta.inline_attachment;
         let _: Option<String> = MMCSAttachmentMeta.message_part;
         let _: Option<crate::api::api::NumOrString> = MMCSAttachmentMeta.file_size;
@@ -15256,6 +15464,13 @@ const _: fn() = || {
             let _: i64 = effect_type;
             let _: String = sticker_id;
         }
+    }
+    {
+        let ParticipantChange = None::<crate::api::api::ParticipantChange>.unwrap();
+        let _: Option<u32> = ParticipantChange.version;
+        let _: Option<i64> = ParticipantChange.participant_change_type;
+        let _: Option<String> = ParticipantChange.other_handle;
+        let _: Option<Vec<u8>> = ParticipantChange.padding;
     }
     {
         let Passkey = None::<crate::api::api::Passkey>.unwrap();
@@ -15853,6 +16068,12 @@ flutter_rust_bridge::frb_generated_moi_arc_impl_value!(
     flutter_rust_bridge::for_generated::RustAutoOpaqueInner<APSWatcher>
 );
 flutter_rust_bridge::frb_generated_moi_arc_impl_value!(
+    flutter_rust_bridge::for_generated::RustAutoOpaqueInner<AVConfig>
+);
+flutter_rust_bridge::frb_generated_moi_arc_impl_value!(
+    flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Arc<AVSession>>
+);
+flutter_rust_bridge::frb_generated_moi_arc_impl_value!(
     flutter_rust_bridge::for_generated::RustAutoOpaqueInner<
         ArcAnisetteClient<DefaultAnisetteProvider>,
     >
@@ -16062,6 +16283,26 @@ impl SseDecode for APSWatcher {
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         let mut inner = <RustOpaqueMoi<
             flutter_rust_bridge::for_generated::RustAutoOpaqueInner<APSWatcher>,
+        >>::sse_decode(deserializer);
+        return flutter_rust_bridge::for_generated::rust_auto_opaque_decode_owned(inner);
+    }
+}
+
+impl SseDecode for AVConfig {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <RustOpaqueMoi<
+            flutter_rust_bridge::for_generated::RustAutoOpaqueInner<AVConfig>,
+        >>::sse_decode(deserializer);
+        return flutter_rust_bridge::for_generated::rust_auto_opaque_decode_owned(inner);
+    }
+}
+
+impl SseDecode for Arc<AVSession> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <RustOpaqueMoi<
+            flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Arc<AVSession>>,
         >>::sse_decode(deserializer);
         return flutter_rust_bridge::for_generated::rust_auto_opaque_decode_owned(inner);
     }
@@ -16834,6 +17075,26 @@ impl SseDecode
 }
 
 impl SseDecode
+    for RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<AVConfig>>
+{
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <usize>::sse_decode(deserializer);
+        return decode_rust_opaque_moi(inner);
+    }
+}
+
+impl SseDecode
+    for RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Arc<AVSession>>>
+{
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <usize>::sse_decode(deserializer);
+        return decode_rust_opaque_moi(inner);
+    }
+}
+
+impl SseDecode
     for RustOpaqueMoi<
         flutter_rust_bridge::for_generated::RustAutoOpaqueInner<
             ArcAnisetteClient<DefaultAnisetteProvider>,
@@ -17581,7 +17842,7 @@ impl SseDecode for crate::api::api::AttachmentType {
                 return crate::api::api::AttachmentType::Inline(var_field0);
             }
             1 => {
-                let mut var_field0 = <crate::api::api::MMCSFile>::sse_decode(deserializer);
+                let mut var_field0 = <Vec<crate::api::api::MMCSFile>>::sse_decode(deserializer);
                 return crate::api::api::AttachmentType::MMCS(var_field0);
             }
             _ => {
@@ -17717,8 +17978,12 @@ impl SseDecode for crate::api::api::ChangeParticipantMessage {
 impl SseDecode for crate::api::api::ChatProto {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        let mut var_unk1 = <Option<u32>>::sse_decode(deserializer);
-        return crate::api::api::ChatProto { unk1: var_unk1 };
+        let mut var_version = <Option<u32>>::sse_decode(deserializer);
+        let mut var_isRecovered = <Option<u32>>::sse_decode(deserializer);
+        return crate::api::api::ChatProto {
+            version: var_version,
+            is_recovered: var_isRecovered,
+        };
     }
 }
 
@@ -17783,34 +18048,26 @@ impl SseDecode for crate::api::api::CloudMessage {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         let mut var_utm = <Option<SystemTime>>::sse_decode(deserializer);
-        let mut var_type = <i64>::sse_decode(deserializer);
         let mut var_error = <i64>::sse_decode(deserializer);
         let mut var_chatId = <String>::sse_decode(deserializer);
         let mut var_sender = <String>::sse_decode(deserializer);
         let mut var_time = <i64>::sse_decode(deserializer);
-        let mut var_msgProto2 = <Option<GZipWrapper<MessageProto2>>>::sse_decode(deserializer);
         let mut var_destinationCallerId = <String>::sse_decode(deserializer);
-        let mut var_msgProto = <GZipWrapper<MessageProto>>::sse_decode(deserializer);
         let mut var_flags = <MessageFlags>::sse_decode(deserializer);
         let mut var_guid = <String>::sse_decode(deserializer);
-        let mut var_msgProto3 = <Option<GZipWrapper<MessageProto3>>>::sse_decode(deserializer);
         let mut var_service = <String>::sse_decode(deserializer);
-        let mut var_msgProto4 = <Option<GZipWrapper<MessageProto4>>>::sse_decode(deserializer);
+        let mut var_message = <crate::api::api::CloudMessageType>::sse_decode(deserializer);
         return crate::api::api::CloudMessage {
             utm: var_utm,
-            r#type: var_type,
             error: var_error,
             chat_id: var_chatId,
             sender: var_sender,
             time: var_time,
-            msg_proto_2: var_msgProto2,
             destination_caller_id: var_destinationCallerId,
-            msg_proto: var_msgProto,
             flags: var_flags,
             guid: var_guid,
-            msg_proto_3: var_msgProto3,
             service: var_service,
-            msg_proto_4: var_msgProto4,
+            message: var_message,
         };
     }
 }
@@ -17826,6 +18083,66 @@ impl SseDecode for crate::api::api::CloudMessageSummary {
             chat_summary: var_chatSummary,
             attachment_summary: var_attachmentSummary,
         };
+    }
+}
+
+impl SseDecode for crate::api::api::CloudMessageType {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut tag_ = <i32>::sse_decode(deserializer);
+        match tag_ {
+            0 => {
+                let mut var_reaction = <bool>::sse_decode(deserializer);
+                let mut var_proto = <crate::api::api::MessageProto>::sse_decode(deserializer);
+                let mut var_proto2 =
+                    <Option<crate::api::api::MessageProto2>>::sse_decode(deserializer);
+                let mut var_proto3 =
+                    <Option<crate::api::api::MessageProto3>>::sse_decode(deserializer);
+                let mut var_proto4 =
+                    <Option<crate::api::api::MessageProto4>>::sse_decode(deserializer);
+                return crate::api::api::CloudMessageType::Message {
+                    reaction: var_reaction,
+                    proto: var_proto,
+                    proto2: var_proto2,
+                    proto3: var_proto3,
+                    proto4: var_proto4,
+                };
+            }
+            1 => {
+                let mut var_proto = <crate::api::api::GroupTitleChange>::sse_decode(deserializer);
+                return crate::api::api::CloudMessageType::GroupTitleChange { proto: var_proto };
+            }
+            2 => {
+                let mut var_proto =
+                    <crate::api::api::LocationShareStatusChange>::sse_decode(deserializer);
+                return crate::api::api::CloudMessageType::LocationShareStatusChange {
+                    proto: var_proto,
+                };
+            }
+            3 => {
+                let mut var_proto = <crate::api::api::MessageAction>::sse_decode(deserializer);
+                return crate::api::api::CloudMessageType::MessageAction { proto: var_proto };
+            }
+            4 => {
+                let mut var_proto = <crate::api::api::ParticipantChange>::sse_decode(deserializer);
+                let mut var_proto2 =
+                    <Option<crate::api::api::ExtraSummaryInfo>>::sse_decode(deserializer);
+                return crate::api::api::CloudMessageType::ParticipantChange {
+                    proto: var_proto,
+                    proto2: var_proto2,
+                };
+            }
+            5 => {
+                let mut var_proto = <crate::api::api::GroupAction>::sse_decode(deserializer);
+                return crate::api::api::CloudMessageType::GroupAction { proto: var_proto };
+            }
+            6 => {
+                return crate::api::api::CloudMessageType::Unknown;
+            }
+            _ => {
+                unimplemented!("");
+            }
+        }
     }
 }
 
@@ -17950,6 +18267,48 @@ impl SseDecode for crate::api::api::DeleteTarget {
     }
 }
 
+impl SseDecode for crate::api::api::DeviceDetails {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_name = <String>::sse_decode(deserializer);
+        let mut var_serial = <String>::sse_decode(deserializer);
+        let mut var_osVersion = <String>::sse_decode(deserializer);
+        let mut var_productName = <Option<String>>::sse_decode(deserializer);
+        let mut var_boardId = <Option<String>>::sse_decode(deserializer);
+        let mut var_osBuild = <Option<String>>::sse_decode(deserializer);
+        let mut var_platformUuid = <Option<String>>::sse_decode(deserializer);
+        let mut var_rootDiskUuid = <Option<String>>::sse_decode(deserializer);
+        let mut var_mlb = <Option<String>>::sse_decode(deserializer);
+        let mut var_rom = <Option<String>>::sse_decode(deserializer);
+        let mut var_macAddress = <Option<String>>::sse_decode(deserializer);
+        let mut var_deviceId = <Option<String>>::sse_decode(deserializer);
+        let mut var_protocolVersion = <Option<u32>>::sse_decode(deserializer);
+        let mut var_icloudUserAgent = <Option<String>>::sse_decode(deserializer);
+        let mut var_aoskitVersion = <Option<String>>::sse_decode(deserializer);
+        let mut var_relayHost = <Option<String>>::sse_decode(deserializer);
+        let mut var_exportable = <bool>::sse_decode(deserializer);
+        return crate::api::api::DeviceDetails {
+            name: var_name,
+            serial: var_serial,
+            os_version: var_osVersion,
+            product_name: var_productName,
+            board_id: var_boardId,
+            os_build: var_osBuild,
+            platform_uuid: var_platformUuid,
+            root_disk_uuid: var_rootDiskUuid,
+            mlb: var_mlb,
+            rom: var_rom,
+            mac_address: var_macAddress,
+            device_id: var_deviceId,
+            protocol_version: var_protocolVersion,
+            icloud_user_agent: var_icloudUserAgent,
+            aoskit_version: var_aoskitVersion,
+            relay_host: var_relayHost,
+            exportable: var_exportable,
+        };
+    }
+}
+
 impl SseDecode for crate::api::api::DeviceInfo {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -18006,6 +18365,18 @@ impl SseDecode for crate::api::api::ExtensionApp {
             app_id: var_appId,
             bundle_id: var_bundleId,
             balloon: var_balloon,
+        };
+    }
+}
+
+impl SseDecode for crate::api::api::ExtraSummaryInfo {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_messageSummaryInfo = <Option<Vec<u8>>>::sse_decode(deserializer);
+        let mut var_padding = <Option<Vec<u8>>>::sse_decode(deserializer);
+        return crate::api::api::ExtraSummaryInfo {
+            message_summary_info: var_messageSummaryInfo,
+            padding: var_padding,
         };
     }
 }
@@ -18236,6 +18607,14 @@ impl SseDecode for crate::api::api::FTMessage {
                 let mut var_guid = <String>::sse_decode(deserializer);
                 return crate::api::api::FTMessage::RespondedElsewhere { guid: var_guid };
             }
+            9 => {
+                let mut var_guid = <String>::sse_decode(deserializer);
+                return crate::api::api::FTMessage::Connected { guid: var_guid };
+            }
+            10 => {
+                let mut var_guid = <String>::sse_decode(deserializer);
+                return crate::api::api::FTMessage::Disconnected { guid: var_guid };
+            }
             _ => {
                 unimplemented!("");
             }
@@ -18290,11 +18669,15 @@ impl SseDecode for crate::api::api::FTSession {
         let mut var_reportId = <String>::sse_decode(deserializer);
         let mut var_startTime = <Option<u64>>::sse_decode(deserializer);
         let mut var_lastRekey = <Option<u64>>::sse_decode(deserializer);
-        let mut var_isPropped = <bool>::sse_decode(deserializer);
+        let mut var_creationTime = <u64>::sse_decode(deserializer);
         let mut var_isRingingInaccurate = <bool>::sse_decode(deserializer);
         let mut var_mode = <Option<crate::api::api::FTMode>>::sse_decode(deserializer);
+        let mut var_isVideo = <bool>::sse_decode(deserializer);
         let mut var_recentMemberAdds =
             <std::collections::HashMap<String, u64>>::sse_decode(deserializer);
+        let mut var_connection = <Option<Arc<AVSession>>>::sse_decode(deserializer);
+        let mut var_avConfig = <AVConfig>::sse_decode(deserializer);
+        let mut var_isInitiator = <bool>::sse_decode(deserializer);
         return crate::api::api::FTSession {
             group_id: var_groupId,
             my_handles: var_myHandles,
@@ -18304,10 +18687,30 @@ impl SseDecode for crate::api::api::FTSession {
             report_id: var_reportId,
             start_time: var_startTime,
             last_rekey: var_lastRekey,
-            is_propped: var_isPropped,
+            creation_time: var_creationTime,
             is_ringing_inaccurate: var_isRingingInaccurate,
             mode: var_mode,
+            is_video: var_isVideo,
             recent_member_adds: var_recentMemberAdds,
+            connection: var_connection,
+            av_config: var_avConfig,
+            is_initiator: var_isInitiator,
+        };
+    }
+}
+
+impl SseDecode for crate::api::api::GroupAction {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_version = <Option<u32>>::sse_decode(deserializer);
+        let mut var_groupActionType = <Option<i64>>::sse_decode(deserializer);
+        let mut var_otherHandle = <Option<String>>::sse_decode(deserializer);
+        let mut var_padding = <Option<Vec<u8>>>::sse_decode(deserializer);
+        return crate::api::api::GroupAction {
+            version: var_version,
+            group_action_type: var_groupActionType,
+            other_handle: var_otherHandle,
+            padding: var_padding,
         };
     }
 }
@@ -18338,6 +18741,22 @@ impl SseDecode for crate::api::api::GroupSummaryMember {
             handle: var_handle,
             user_id: var_userId,
             is_joined: var_isJoined,
+        };
+    }
+}
+
+impl SseDecode for crate::api::api::GroupTitleChange {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_version = <Option<u32>>::sse_decode(deserializer);
+        let mut var_groupTitle = <Option<String>>::sse_decode(deserializer);
+        let mut var_otherHandle = <Option<String>>::sse_decode(deserializer);
+        let mut var_padding = <Option<Vec<u8>>>::sse_decode(deserializer);
+        return crate::api::api::GroupTitleChange {
+            version: var_version,
+            group_title: var_groupTitle,
+            other_handle: var_otherHandle,
+            padding: var_padding,
         };
     }
 }
@@ -18574,6 +18993,18 @@ impl SseDecode for Vec<ViableBottle> {
     }
 }
 
+impl SseDecode for Vec<i64> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = vec![];
+        for idx_ in 0..len_ {
+            ans_.push(<i64>::sse_decode(deserializer));
+        }
+        return ans_;
+    }
+}
+
 impl SseDecode for Vec<String> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -18724,6 +19155,18 @@ impl SseDecode for Vec<crate::api::api::MessageTarget> {
     }
 }
 
+impl SseDecode for Vec<crate::api::api::MMCSFile> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = vec![];
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::api::MMCSFile>::sse_decode(deserializer));
+        }
+        return ans_;
+    }
+}
+
 impl SseDecode for Vec<crate::api::api::PasswordManagerAltDomain> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -18797,18 +19240,6 @@ impl SseDecode for Vec<f64> {
         let mut ans_ = vec![];
         for idx_ in 0..len_ {
             ans_.push(<f64>::sse_decode(deserializer));
-        }
-        return ans_;
-    }
-}
-
-impl SseDecode for Vec<i64> {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        let mut len_ = <i32>::sse_decode(deserializer);
-        let mut ans_ = vec![];
-        for idx_ in 0..len_ {
-            ans_.push(<i64>::sse_decode(deserializer));
         }
         return ans_;
     }
@@ -19283,6 +19714,24 @@ impl SseDecode for crate::api::api::Location {
     }
 }
 
+impl SseDecode for crate::api::api::LocationShareStatusChange {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_version = <Option<u32>>::sse_decode(deserializer);
+        let mut var_shareStatus = <Option<i64>>::sse_decode(deserializer);
+        let mut var_shareDirection = <Option<i64>>::sse_decode(deserializer);
+        let mut var_otherHandle = <Option<String>>::sse_decode(deserializer);
+        let mut var_padding = <Option<Vec<u8>>>::sse_decode(deserializer);
+        return crate::api::api::LocationShareStatusChange {
+            version: var_version,
+            share_status: var_shareStatus,
+            share_direction: var_shareDirection,
+            other_handle: var_otherHandle,
+            padding: var_padding,
+        };
+    }
+}
+
 impl SseDecode for crate::api::api::LoginState {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -19542,10 +19991,31 @@ impl SseDecode for crate::api::api::Message {
             26 => {
                 return crate::api::api::Message::Played;
             }
+            27 => {
+                return crate::api::api::Message::RecoverProfile;
+            }
             _ => {
                 unimplemented!("");
             }
         }
+    }
+}
+
+impl SseDecode for crate::api::api::MessageAction {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_version = <Option<u32>>::sse_decode(deserializer);
+        let mut var_messageActionType = <Option<i64>>::sse_decode(deserializer);
+        let mut var_otherHandle = <Option<String>>::sse_decode(deserializer);
+        let mut var_originalMessageGuid = <Option<String>>::sse_decode(deserializer);
+        let mut var_padding = <Option<Vec<u8>>>::sse_decode(deserializer);
+        return crate::api::api::MessageAction {
+            version: var_version,
+            message_action_type: var_messageActionType,
+            other_handle: var_otherHandle,
+            original_message_guid: var_originalMessageGuid,
+            padding: var_padding,
+        };
     }
 }
 
@@ -19645,7 +20115,7 @@ impl SseDecode for crate::api::api::MessageParts {
 impl SseDecode for crate::api::api::MessageProto {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        let mut var_unk1 = <u32>::sse_decode(deserializer);
+        let mut var_version = <u32>::sse_decode(deserializer);
         let mut var_subject = <Option<String>>::sse_decode(deserializer);
         let mut var_text = <Option<String>>::sse_decode(deserializer);
         let mut var_attributedBody = <Option<Vec<u8>>>::sse_decode(deserializer);
@@ -19654,16 +20124,16 @@ impl SseDecode for crate::api::api::MessageProto {
         let mut var_messageSummaryInfo = <Option<Vec<u8>>>::sse_decode(deserializer);
         let mut var_effect = <Option<String>>::sse_decode(deserializer);
         let mut var_dateRead = <Option<u64>>::sse_decode(deserializer);
-        let mut var_unk10 = <Option<u32>>::sse_decode(deserializer);
-        let mut var_unk11 = <Option<u32>>::sse_decode(deserializer);
+        let mut var_timePlayed = <Option<u32>>::sse_decode(deserializer);
+        let mut var_timeExpressiveSentPlayed = <Option<u32>>::sse_decode(deserializer);
         let mut var_dateDelivered = <Option<u64>>::sse_decode(deserializer);
-        let mut var_unk14 = <Option<u32>>::sse_decode(deserializer);
+        let mut var_expireState = <Option<u32>>::sse_decode(deserializer);
         let mut var_associatedMessageType = <Option<u32>>::sse_decode(deserializer);
         let mut var_associatedMessageGuid = <Option<String>>::sse_decode(deserializer);
         let mut var_associatedMessageRangeLocation = <Option<u32>>::sse_decode(deserializer);
         let mut var_associatedMessageRangeLength = <Option<u32>>::sse_decode(deserializer);
         return crate::api::api::MessageProto {
-            unk1: var_unk1,
+            version: var_version,
             subject: var_subject,
             text: var_text,
             attributed_body: var_attributedBody,
@@ -19672,10 +20142,10 @@ impl SseDecode for crate::api::api::MessageProto {
             message_summary_info: var_messageSummaryInfo,
             effect: var_effect,
             date_read: var_dateRead,
-            unk10: var_unk10,
-            unk11: var_unk11,
+            time_played: var_timePlayed,
+            time_expressive_sent_played: var_timeExpressiveSentPlayed,
             date_delivered: var_dateDelivered,
-            unk14: var_unk14,
+            expire_state: var_expireState,
             associated_message_type: var_associatedMessageType,
             associated_message_guid: var_associatedMessageGuid,
             associated_message_range_location: var_associatedMessageRangeLocation,
@@ -19687,19 +20157,29 @@ impl SseDecode for crate::api::api::MessageProto {
 impl SseDecode for crate::api::api::MessageProto2 {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_version = <Option<u32>>::sse_decode(deserializer);
         let mut var_reply = <Option<String>>::sse_decode(deserializer);
-        return crate::api::api::MessageProto2 { reply: var_reply };
+        let mut var_padding = <Option<Vec<u8>>>::sse_decode(deserializer);
+        return crate::api::api::MessageProto2 {
+            version: var_version,
+            reply: var_reply,
+            padding: var_padding,
+        };
     }
 }
 
 impl SseDecode for crate::api::api::MessageProto3 {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        let mut var_unk2 = <Option<u32>>::sse_decode(deserializer);
-        let mut var_unk3 = <Option<u32>>::sse_decode(deserializer);
+        let mut var_version = <Option<u32>>::sse_decode(deserializer);
+        let mut var_cmmState = <Option<u32>>::sse_decode(deserializer);
+        let mut var_cmmAssetOffset = <Option<u32>>::sse_decode(deserializer);
+        let mut var_padding = <Option<Vec<u8>>>::sse_decode(deserializer);
         return crate::api::api::MessageProto3 {
-            unk2: var_unk2,
-            unk3: var_unk3,
+            version: var_version,
+            cmm_state: var_cmmState,
+            cmm_asset_offset: var_cmmAssetOffset,
+            padding: var_padding,
         };
     }
 }
@@ -19707,14 +20187,18 @@ impl SseDecode for crate::api::api::MessageProto3 {
 impl SseDecode for crate::api::api::MessageProto4 {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_version = <Option<u32>>::sse_decode(deserializer);
         let mut var_associatedMessageEmoji = <Option<String>>::sse_decode(deserializer);
+        let mut var_padding = <Option<Vec<u8>>>::sse_decode(deserializer);
         let mut var_service = <Option<String>>::sse_decode(deserializer);
         let mut var_scheduleType = <Option<u32>>::sse_decode(deserializer);
         let mut var_scheduleState = <Option<u32>>::sse_decode(deserializer);
         let mut var_groupId = <Option<String>>::sse_decode(deserializer);
         let mut var_sentOrReceivedOffGrid = <Option<u32>>::sse_decode(deserializer);
         return crate::api::api::MessageProto4 {
+            version: var_version,
             associated_message_emoji: var_associatedMessageEmoji,
+            padding: var_padding,
             service: var_service,
             schedule_type: var_scheduleType,
             schedule_state: var_scheduleState,
@@ -19814,10 +20298,7 @@ impl SseDecode for crate::api::api::MessageType {
 impl SseDecode for crate::api::api::MMCSAttachmentMeta {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        let mut var_mmcsSignatureHex = <Option<String>>::sse_decode(deserializer);
-        let mut var_mmcsOwner = <Option<String>>::sse_decode(deserializer);
-        let mut var_mmcsUrl = <Option<String>>::sse_decode(deserializer);
-        let mut var_decryptionKey = <Option<String>>::sse_decode(deserializer);
+        let mut var_files = <Vec<crate::api::api::MMCSFile>>::sse_decode(deserializer);
         let mut var_inlineAttachment = <Option<String>>::sse_decode(deserializer);
         let mut var_messagePart = <Option<String>>::sse_decode(deserializer);
         let mut var_fileSize = <Option<crate::api::api::NumOrString>>::sse_decode(deserializer);
@@ -19825,10 +20306,7 @@ impl SseDecode for crate::api::api::MMCSAttachmentMeta {
         let mut var_mimeType = <Option<String>>::sse_decode(deserializer);
         let mut var_name = <Option<String>>::sse_decode(deserializer);
         return crate::api::api::MMCSAttachmentMeta {
-            mmcs_signature_hex: var_mmcsSignatureHex,
-            mmcs_owner: var_mmcsOwner,
-            mmcs_url: var_mmcsUrl,
-            decryption_key: var_decryptionKey,
+            files: var_files,
             inline_attachment: var_inlineAttachment,
             message_part: var_messagePart,
             file_size: var_fileSize,
@@ -20098,6 +20576,17 @@ impl SseDecode for Option<APSState> {
     }
 }
 
+impl SseDecode for Option<Arc<AVSession>> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<Arc<AVSession>>::sse_decode(deserializer));
+        } else {
+            return None;
+        }
+    }
+}
+
 impl SseDecode for Option<Arc<CloudKitClient<DefaultAnisetteProvider>>> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -20249,39 +20738,6 @@ impl SseDecode for Option<GZipWrapper<ChatProto>> {
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         if (<bool>::sse_decode(deserializer)) {
             return Some(<GZipWrapper<ChatProto>>::sse_decode(deserializer));
-        } else {
-            return None;
-        }
-    }
-}
-
-impl SseDecode for Option<GZipWrapper<MessageProto2>> {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        if (<bool>::sse_decode(deserializer)) {
-            return Some(<GZipWrapper<MessageProto2>>::sse_decode(deserializer));
-        } else {
-            return None;
-        }
-    }
-}
-
-impl SseDecode for Option<GZipWrapper<MessageProto3>> {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        if (<bool>::sse_decode(deserializer)) {
-            return Some(<GZipWrapper<MessageProto3>>::sse_decode(deserializer));
-        } else {
-            return None;
-        }
-    }
-}
-
-impl SseDecode for Option<GZipWrapper<MessageProto4>> {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        if (<bool>::sse_decode(deserializer)) {
-            return Some(<GZipWrapper<MessageProto4>>::sse_decode(deserializer));
         } else {
             return None;
         }
@@ -20540,6 +20996,19 @@ impl SseDecode for Option<crate::api::api::ExtensionApp> {
     }
 }
 
+impl SseDecode for Option<crate::api::api::ExtraSummaryInfo> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<crate::api::api::ExtraSummaryInfo>::sse_decode(
+                deserializer,
+            ));
+        } else {
+            return None;
+        }
+    }
+}
+
 impl SseDecode for Option<f64> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -20661,6 +21130,39 @@ impl SseDecode for Option<crate::api::api::LPSpecializationMetadata> {
             return Some(<crate::api::api::LPSpecializationMetadata>::sse_decode(
                 deserializer,
             ));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<crate::api::api::MessageProto2> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<crate::api::api::MessageProto2>::sse_decode(deserializer));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<crate::api::api::MessageProto3> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<crate::api::api::MessageProto3>::sse_decode(deserializer));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<crate::api::api::MessageProto4> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<crate::api::api::MessageProto4>::sse_decode(deserializer));
         } else {
             return None;
         }
@@ -20798,22 +21300,33 @@ impl SseDecode for Option<(crate::api::api::SharedPushState, APSWatcher)> {
     }
 }
 
-impl SseDecode for Option<(String, String)> {
+impl SseDecode for Option<(String, u64)> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         if (<bool>::sse_decode(deserializer)) {
-            return Some(<(String, String)>::sse_decode(deserializer));
+            return Some(<(String, u64)>::sse_decode(deserializer));
         } else {
             return None;
         }
     }
 }
 
-impl SseDecode for Option<(String, u64)> {
+impl SseDecode for Option<(String, Vec<u8>)> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         if (<bool>::sse_decode(deserializer)) {
-            return Some(<(String, u64)>::sse_decode(deserializer));
+            return Some(<(String, Vec<u8>)>::sse_decode(deserializer));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<(String, String)> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<(String, String)>::sse_decode(deserializer));
         } else {
             return None;
         }
@@ -21034,6 +21547,22 @@ impl SseDecode for crate::api::api::PartExtension {
                 unimplemented!("");
             }
         }
+    }
+}
+
+impl SseDecode for crate::api::api::ParticipantChange {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_version = <Option<u32>>::sse_decode(deserializer);
+        let mut var_participantChangeType = <Option<i64>>::sse_decode(deserializer);
+        let mut var_otherHandle = <Option<String>>::sse_decode(deserializer);
+        let mut var_padding = <Option<Vec<u8>>>::sse_decode(deserializer);
+        return crate::api::api::ParticipantChange {
+            version: var_version,
+            participant_change_type: var_participantChangeType,
+            other_handle: var_otherHandle,
+            padding: var_padding,
+        };
     }
 }
 
@@ -22220,20 +22749,20 @@ impl SseDecode for (String, crate::api::api::UpdateAccountFinish) {
     }
 }
 
-impl SseDecode for (u32, crate::api::api::NSDictionaryTypedCoder) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        let mut var_field0 = <u32>::sse_decode(deserializer);
-        let mut var_field1 = <crate::api::api::NSDictionaryTypedCoder>::sse_decode(deserializer);
-        return (var_field0, var_field1);
-    }
-}
-
 impl SseDecode for (u32, u64) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         let mut var_field0 = <u32>::sse_decode(deserializer);
         let mut var_field1 = <u64>::sse_decode(deserializer);
+        return (var_field0, var_field1);
+    }
+}
+
+impl SseDecode for (u32, crate::api::api::NSDictionaryTypedCoder) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_field0 = <u32>::sse_decode(deserializer);
+        let mut var_field1 = <crate::api::api::NSDictionaryTypedCoder>::sse_decode(deserializer);
         return (var_field0, var_field1);
     }
 }
@@ -23077,144 +23606,147 @@ fn pde_ffi_dispatcher_primary_impl(
         119 => wire__crate__api__api__get_beacon_items_impl(port, ptr, rust_vec_len, data_len),
         120 => wire__crate__api__api__get_bottles_impl(port, ptr, rust_vec_len, data_len),
         121 => wire__crate__api__api__get_contacts_headers_impl(port, ptr, rust_vec_len, data_len),
-        122 => wire__crate__api__api__get_device_info_impl(port, ptr, rust_vec_len, data_len),
-        123 => wire__crate__api__api__get_devices_impl(port, ptr, rust_vec_len, data_len),
-        124 => wire__crate__api__api__get_entitlements_impl(port, ptr, rust_vec_len, data_len),
-        125 => wire__crate__api__api__get_following_impl(port, ptr, rust_vec_len, data_len),
-        126 => wire__crate__api__api__get_ft_link_impl(port, ptr, rust_vec_len, data_len),
-        127 => wire__crate__api__api__get_groups_impl(port, ptr, rust_vec_len, data_len),
-        128 => wire__crate__api__api__get_handles_impl(port, ptr, rust_vec_len, data_len),
-        129 => wire__crate__api__api__get_my_phone_handles_impl(port, ptr, rust_vec_len, data_len),
-        130 => wire__crate__api__api__get_passkeys_impl(port, ptr, rust_vec_len, data_len),
-        131 => wire__crate__api__api__get_passwords_impl(port, ptr, rust_vec_len, data_len),
-        132 => wire__crate__api__api__get_passwords_meta_impl(port, ptr, rust_vec_len, data_len),
-        133 => wire__crate__api__api__get_quota_info_impl(port, ptr, rust_vec_len, data_len),
-        134 => wire__crate__api__api__get_regstate_impl(port, ptr, rust_vec_len, data_len),
-        135 => wire__crate__api__api__get_sms_targets_impl(port, ptr, rust_vec_len, data_len),
-        136 => wire__crate__api__api__get_syncstatus_impl(port, ptr, rust_vec_len, data_len),
-        137 => wire__crate__api__api__get_token_impl(port, ptr, rust_vec_len, data_len),
-        138 => wire__crate__api__api__get_user_name_impl(port, ptr, rust_vec_len, data_len),
-        139 => wire__crate__api__api__get_wifi_passwords_impl(port, ptr, rust_vec_len, data_len),
-        141 => wire__crate__api__api__invalidate_id_cache_impl(port, ptr, rust_vec_len, data_len),
-        142 => wire__crate__api__api__invite_to_channel_impl(port, ptr, rust_vec_len, data_len),
-        143 => wire__crate__api__api__invite_user_impl(port, ptr, rust_vec_len, data_len),
-        144 => wire__crate__api__api__is_in_clique_impl(port, ptr, rust_vec_len, data_len),
-        145 => {
+        122 => wire__crate__api__api__get_device_details_impl(port, ptr, rust_vec_len, data_len),
+        123 => wire__crate__api__api__get_device_info_impl(port, ptr, rust_vec_len, data_len),
+        124 => wire__crate__api__api__get_devices_impl(port, ptr, rust_vec_len, data_len),
+        125 => wire__crate__api__api__get_entitlements_impl(port, ptr, rust_vec_len, data_len),
+        126 => wire__crate__api__api__get_following_impl(port, ptr, rust_vec_len, data_len),
+        127 => wire__crate__api__api__get_ft_link_impl(port, ptr, rust_vec_len, data_len),
+        128 => wire__crate__api__api__get_groups_impl(port, ptr, rust_vec_len, data_len),
+        129 => wire__crate__api__api__get_handles_impl(port, ptr, rust_vec_len, data_len),
+        130 => wire__crate__api__api__get_my_phone_handles_impl(port, ptr, rust_vec_len, data_len),
+        131 => wire__crate__api__api__get_passkeys_impl(port, ptr, rust_vec_len, data_len),
+        132 => wire__crate__api__api__get_passwords_impl(port, ptr, rust_vec_len, data_len),
+        133 => wire__crate__api__api__get_passwords_meta_impl(port, ptr, rust_vec_len, data_len),
+        134 => wire__crate__api__api__get_quota_info_impl(port, ptr, rust_vec_len, data_len),
+        135 => wire__crate__api__api__get_regstate_impl(port, ptr, rust_vec_len, data_len),
+        136 => wire__crate__api__api__get_sms_targets_impl(port, ptr, rust_vec_len, data_len),
+        137 => wire__crate__api__api__get_syncstatus_impl(port, ptr, rust_vec_len, data_len),
+        138 => wire__crate__api__api__get_token_impl(port, ptr, rust_vec_len, data_len),
+        139 => wire__crate__api__api__get_user_name_impl(port, ptr, rust_vec_len, data_len),
+        140 => wire__crate__api__api__get_wifi_passwords_impl(port, ptr, rust_vec_len, data_len),
+        142 => wire__crate__api__api__invalidate_id_cache_impl(port, ptr, rust_vec_len, data_len),
+        143 => wire__crate__api__api__invite_to_channel_impl(port, ptr, rust_vec_len, data_len),
+        144 => wire__crate__api__api__invite_user_impl(port, ptr, rust_vec_len, data_len),
+        145 => wire__crate__api__api__is_in_clique_impl(port, ptr, rust_vec_len, data_len),
+        146 => {
             wire__crate__api__api__join_clique_with_bottle_impl(port, ptr, rust_vec_len, data_len)
         }
-        146 => wire__crate__api__api__make_anisette_impl(port, ptr, rust_vec_len, data_len),
-        150 => wire__crate__api__api__make_cloudkit_impl(port, ptr, rust_vec_len, data_len),
-        151 => wire__crate__api__api__make_facetime_impl(port, ptr, rust_vec_len, data_len),
-        152 => wire__crate__api__api__make_find_my_friends_impl(port, ptr, rust_vec_len, data_len),
-        153 => wire__crate__api__api__make_find_my_phone_impl(port, ptr, rust_vec_len, data_len),
-        154 => wire__crate__api__api__make_findmy_impl(port, ptr, rust_vec_len, data_len),
-        155 => wire__crate__api__api__make_idms_impl(port, ptr, rust_vec_len, data_len),
-        156 => wire__crate__api__api__make_imclient_impl(port, ptr, rust_vec_len, data_len),
-        158 => wire__crate__api__api__make_passwords_impl(port, ptr, rust_vec_len, data_len),
-        159 => wire__crate__api__api__make_profiles_impl(port, ptr, rust_vec_len, data_len),
-        160 => wire__crate__api__api__make_shared_streams_impl(port, ptr, rust_vec_len, data_len),
-        161 => wire__crate__api__api__make_statuskit_impl(port, ptr, rust_vec_len, data_len),
-        163 => {
+        147 => wire__crate__api__api__make_anisette_impl(port, ptr, rust_vec_len, data_len),
+        151 => wire__crate__api__api__make_cloudkit_impl(port, ptr, rust_vec_len, data_len),
+        152 => wire__crate__api__api__make_facetime_impl(port, ptr, rust_vec_len, data_len),
+        153 => wire__crate__api__api__make_find_my_friends_impl(port, ptr, rust_vec_len, data_len),
+        154 => wire__crate__api__api__make_find_my_phone_impl(port, ptr, rust_vec_len, data_len),
+        155 => wire__crate__api__api__make_findmy_impl(port, ptr, rust_vec_len, data_len),
+        156 => wire__crate__api__api__make_idms_impl(port, ptr, rust_vec_len, data_len),
+        157 => wire__crate__api__api__make_imclient_impl(port, ptr, rust_vec_len, data_len),
+        159 => wire__crate__api__api__make_passwords_impl(port, ptr, rust_vec_len, data_len),
+        160 => wire__crate__api__api__make_profiles_impl(port, ptr, rust_vec_len, data_len),
+        161 => wire__crate__api__api__make_shared_streams_impl(port, ptr, rust_vec_len, data_len),
+        162 => wire__crate__api__api__make_statuskit_impl(port, ptr, rust_vec_len, data_len),
+        164 => {
             wire__crate__api__api__message_parts_raw_text_impl(port, ptr, rust_vec_len, data_len)
         }
-        165 => {
+        166 => {
             wire__crate__api__api__my_async_runtime_default_impl(port, ptr, rust_vec_len, data_len)
         }
-        166 => wire__crate__api__api__new_msg_impl(port, ptr, rust_vec_len, data_len),
-        177 => {
+        167 => wire__crate__api__api__new_msg_impl(port, ptr, rust_vec_len, data_len),
+        178 => {
             wire__crate__api__api__pack_transcript_poster_impl(port, ptr, rust_vec_len, data_len)
         }
-        178 => wire__crate__api__api__parse_poster_impl(port, ptr, rust_vec_len, data_len),
-        179 => wire__crate__api__api__parse_poster_save_impl(port, ptr, rust_vec_len, data_len),
-        180 => {
+        179 => wire__crate__api__api__parse_poster_impl(port, ptr, rust_vec_len, data_len),
+        180 => wire__crate__api__api__parse_poster_save_impl(port, ptr, rust_vec_len, data_len),
+        181 => {
             wire__crate__api__api__parse_transcript_poster_impl(port, ptr, rust_vec_len, data_len)
         }
-        184 => wire__crate__api__api__provisioned_flavor_default_impl(
+        185 => wire__crate__api__api__provisioned_flavor_default_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        185 => wire__crate__api__api__ptr_to_dart_impl(port, ptr, rust_vec_len, data_len),
-        186 => wire__crate__api__api__query_handle_impl(port, ptr, rust_vec_len, data_len),
-        188 => wire__crate__api__api__recv_wait_impl(port, ptr, rust_vec_len, data_len),
-        189 => wire__crate__api__api__refresh_background_following_impl(
+        186 => wire__crate__api__api__ptr_to_dart_impl(port, ptr, rust_vec_len, data_len),
+        187 => wire__crate__api__api__query_handle_impl(port, ptr, rust_vec_len, data_len),
+        188 => wire__crate__api__api__read_gsa_account_impl(port, ptr, rust_vec_len, data_len),
+        190 => wire__crate__api__api__recv_wait_impl(port, ptr, rust_vec_len, data_len),
+        191 => wire__crate__api__api__refresh_background_following_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        190 => wire__crate__api__api__refresh_devices_impl(port, ptr, rust_vec_len, data_len),
-        191 => wire__crate__api__api__refresh_following_impl(port, ptr, rust_vec_len, data_len),
-        192 => wire__crate__api__api__register_ids_impl(port, ptr, rust_vec_len, data_len),
-        193 => wire__crate__api__api__remove_album_impl(port, ptr, rust_vec_len, data_len),
-        194 => wire__crate__api__api__remove_user_impl(port, ptr, rust_vec_len, data_len),
-        195 => wire__crate__api__api__rename_group_impl(port, ptr, rust_vec_len, data_len),
-        196 => wire__crate__api__api__report_messages_impl(port, ptr, rust_vec_len, data_len),
-        197 => wire__crate__api__api__request_handles_impl(port, ptr, rust_vec_len, data_len),
-        199 => wire__crate__api__api__reset_channel_keys_impl(port, ptr, rust_vec_len, data_len),
-        200 => wire__crate__api__api__reset_clique_impl(port, ptr, rust_vec_len, data_len),
-        201 => wire__crate__api__api__reset_state_impl(port, ptr, rust_vec_len, data_len),
-        202 => wire__crate__api__api__restore_account_impl(port, ptr, rust_vec_len, data_len),
-        205 => wire__crate__api__api__restore_user_impl(port, ptr, rust_vec_len, data_len),
-        207 => wire__crate__api__api__save_attachment_impl(port, ptr, rust_vec_len, data_len),
-        208 => wire__crate__api__api__save_attachments_impl(port, ptr, rust_vec_len, data_len),
-        209 => wire__crate__api__api__save_chats_impl(port, ptr, rust_vec_len, data_len),
-        211 => wire__crate__api__api__save_messages_impl(port, ptr, rust_vec_len, data_len),
-        212 => wire__crate__api__api__save_passkey_impl(port, ptr, rust_vec_len, data_len),
-        213 => wire__crate__api__api__save_password_impl(port, ptr, rust_vec_len, data_len),
-        214 => wire__crate__api__api__save_password_meta_impl(port, ptr, rust_vec_len, data_len),
-        215 => wire__crate__api__api__save_user_impl(port, ptr, rust_vec_len, data_len),
-        217 => wire__crate__api__api__save_wifi_password_impl(port, ptr, rust_vec_len, data_len),
-        218 => {
+        192 => wire__crate__api__api__refresh_devices_impl(port, ptr, rust_vec_len, data_len),
+        193 => wire__crate__api__api__refresh_following_impl(port, ptr, rust_vec_len, data_len),
+        194 => wire__crate__api__api__register_ids_impl(port, ptr, rust_vec_len, data_len),
+        195 => wire__crate__api__api__remove_album_impl(port, ptr, rust_vec_len, data_len),
+        196 => wire__crate__api__api__remove_user_impl(port, ptr, rust_vec_len, data_len),
+        197 => wire__crate__api__api__rename_group_impl(port, ptr, rust_vec_len, data_len),
+        198 => wire__crate__api__api__report_messages_impl(port, ptr, rust_vec_len, data_len),
+        199 => wire__crate__api__api__request_handles_impl(port, ptr, rust_vec_len, data_len),
+        201 => wire__crate__api__api__reset_channel_keys_impl(port, ptr, rust_vec_len, data_len),
+        202 => wire__crate__api__api__reset_clique_impl(port, ptr, rust_vec_len, data_len),
+        203 => wire__crate__api__api__reset_state_impl(port, ptr, rust_vec_len, data_len),
+        204 => wire__crate__api__api__restore_account_impl(port, ptr, rust_vec_len, data_len),
+        207 => wire__crate__api__api__restore_user_impl(port, ptr, rust_vec_len, data_len),
+        209 => wire__crate__api__api__save_attachment_impl(port, ptr, rust_vec_len, data_len),
+        210 => wire__crate__api__api__save_attachments_impl(port, ptr, rust_vec_len, data_len),
+        211 => wire__crate__api__api__save_chats_impl(port, ptr, rust_vec_len, data_len),
+        213 => wire__crate__api__api__save_messages_impl(port, ptr, rust_vec_len, data_len),
+        214 => wire__crate__api__api__save_passkey_impl(port, ptr, rust_vec_len, data_len),
+        215 => wire__crate__api__api__save_password_impl(port, ptr, rust_vec_len, data_len),
+        216 => wire__crate__api__api__save_password_meta_impl(port, ptr, rust_vec_len, data_len),
+        217 => wire__crate__api__api__save_user_impl(port, ptr, rust_vec_len, data_len),
+        219 => wire__crate__api__api__save_wifi_password_impl(port, ptr, rust_vec_len, data_len),
+        220 => {
             wire__crate__api__api__select_background_friend_impl(port, ptr, rust_vec_len, data_len)
         }
-        219 => wire__crate__api__api__select_friend_impl(port, ptr, rust_vec_len, data_len),
-        220 => wire__crate__api__api__send_impl(port, ptr, rust_vec_len, data_len),
-        221 => wire__crate__api__api__send_2fa_sms_impl(port, ptr, rust_vec_len, data_len),
-        222 => wire__crate__api__api__send_2fa_to_devices_impl(port, ptr, rust_vec_len, data_len),
-        224 => wire__crate__api__api__service_from_ptr_impl(port, ptr, rust_vec_len, data_len),
-        225 => wire__crate__api__api__set_identity_impl(port, ptr, rust_vec_len, data_len),
-        226 => wire__crate__api__api__set_profile_impl(port, ptr, rust_vec_len, data_len),
-        227 => wire__crate__api__api__set_status_impl(port, ptr, rust_vec_len, data_len),
-        228 => wire__crate__api__api__setup_push_impl(port, ptr, rust_vec_len, data_len),
-        229 => {
+        221 => wire__crate__api__api__select_friend_impl(port, ptr, rust_vec_len, data_len),
+        222 => wire__crate__api__api__send_impl(port, ptr, rust_vec_len, data_len),
+        223 => wire__crate__api__api__send_2fa_sms_impl(port, ptr, rust_vec_len, data_len),
+        224 => wire__crate__api__api__send_2fa_to_devices_impl(port, ptr, rust_vec_len, data_len),
+        226 => wire__crate__api__api__service_from_ptr_impl(port, ptr, rust_vec_len, data_len),
+        227 => wire__crate__api__api__set_identity_impl(port, ptr, rust_vec_len, data_len),
+        228 => wire__crate__api__api__set_profile_impl(port, ptr, rust_vec_len, data_len),
+        229 => wire__crate__api__api__set_status_impl(port, ptr, rust_vec_len, data_len),
+        230 => wire__crate__api__api__setup_push_impl(port, ptr, rust_vec_len, data_len),
+        231 => {
             wire__crate__api__api__shared_push_state_restore_impl(port, ptr, rust_vec_len, data_len)
         }
-        230 => wire__crate__api__api__subscribe_impl(port, ptr, rust_vec_len, data_len),
-        232 => wire__crate__api__api__subscribe_token_impl(port, ptr, rust_vec_len, data_len),
-        233 => wire__crate__api__api__sync_attachments_impl(port, ptr, rust_vec_len, data_len),
-        234 => wire__crate__api__api__sync_chats_impl(port, ptr, rust_vec_len, data_len),
-        235 => wire__crate__api__api__sync_messages_impl(port, ptr, rust_vec_len, data_len),
-        236 => wire__crate__api__api__sync_now_impl(port, ptr, rust_vec_len, data_len),
-        237 => wire__crate__api__api__sync_passwords_impl(port, ptr, rust_vec_len, data_len),
-        238 => wire__crate__api__api__sync_wifi_passwords_impl(port, ptr, rust_vec_len, data_len),
-        240 => wire__crate__api__api__teardown_2fa_impl(port, ptr, rust_vec_len, data_len),
-        241 => {
+        232 => wire__crate__api__api__subscribe_impl(port, ptr, rust_vec_len, data_len),
+        234 => wire__crate__api__api__subscribe_token_impl(port, ptr, rust_vec_len, data_len),
+        235 => wire__crate__api__api__sync_attachments_impl(port, ptr, rust_vec_len, data_len),
+        236 => wire__crate__api__api__sync_chats_impl(port, ptr, rust_vec_len, data_len),
+        237 => wire__crate__api__api__sync_messages_impl(port, ptr, rust_vec_len, data_len),
+        238 => wire__crate__api__api__sync_now_impl(port, ptr, rust_vec_len, data_len),
+        239 => wire__crate__api__api__sync_passwords_impl(port, ptr, rust_vec_len, data_len),
+        240 => wire__crate__api__api__sync_wifi_passwords_impl(port, ptr, rust_vec_len, data_len),
+        242 => wire__crate__api__api__teardown_2fa_impl(port, ptr, rust_vec_len, data_len),
+        243 => {
             wire__crate__api__api__transcript_poster_save_impl(port, ptr, rust_vec_len, data_len)
         }
-        242 => wire__crate__api__api__try_auth_impl(port, ptr, rust_vec_len, data_len),
-        243 => wire__crate__api__api__try_icloud_login_impl(port, ptr, rust_vec_len, data_len),
-        244 => wire__crate__api__api__unsubscribe_impl(port, ptr, rust_vec_len, data_len),
-        245 => {
+        244 => wire__crate__api__api__try_auth_impl(port, ptr, rust_vec_len, data_len),
+        245 => wire__crate__api__api__try_icloud_login_impl(port, ptr, rust_vec_len, data_len),
+        246 => wire__crate__api__api__unsubscribe_impl(port, ptr, rust_vec_len, data_len),
+        247 => {
             wire__crate__api__api__update_account_headers_impl(port, ptr, rust_vec_len, data_len)
         }
-        246 => wire__crate__api__api__update_beacon_name_impl(port, ptr, rust_vec_len, data_len),
-        247 => wire__crate__api__api__upload_attachment_impl(port, ptr, rust_vec_len, data_len),
-        248 => {
+        248 => wire__crate__api__api__update_beacon_name_impl(port, ptr, rust_vec_len, data_len),
+        249 => wire__crate__api__api__upload_attachment_impl(port, ptr, rust_vec_len, data_len),
+        250 => {
             wire__crate__api__api__upload_cloud_attachments_impl(port, ptr, rust_vec_len, data_len)
         }
-        249 => wire__crate__api__api__upload_group_photo_impl(port, ptr, rust_vec_len, data_len),
-        250 => wire__crate__api__api__upload_mmcs_impl(port, ptr, rust_vec_len, data_len),
-        251 => wire__crate__api__api__use_link_for_impl(port, ptr, rust_vec_len, data_len),
-        253 => wire__crate__api__api__validate_cert_impl(port, ptr, rust_vec_len, data_len),
-        254 => wire__crate__api__api__validate_relay_impl(port, ptr, rust_vec_len, data_len),
-        255 => wire__crate__api__api__validate_targets_impl(port, ptr, rust_vec_len, data_len),
-        256 => {
+        251 => wire__crate__api__api__upload_group_photo_impl(port, ptr, rust_vec_len, data_len),
+        252 => wire__crate__api__api__upload_mmcs_impl(port, ptr, rust_vec_len, data_len),
+        253 => wire__crate__api__api__use_link_for_impl(port, ptr, rust_vec_len, data_len),
+        255 => wire__crate__api__api__validate_cert_impl(port, ptr, rust_vec_len, data_len),
+        256 => wire__crate__api__api__validate_relay_impl(port, ptr, rust_vec_len, data_len),
+        257 => wire__crate__api__api__validate_targets_impl(port, ptr, rust_vec_len, data_len),
+        258 => {
             wire__crate__api__api__validate_targets_facetime_impl(port, ptr, rust_vec_len, data_len)
         }
-        257 => wire__crate__api__api__verify_2fa_impl(port, ptr, rust_vec_len, data_len),
-        258 => wire__crate__api__api__verify_2fa_sms_impl(port, ptr, rust_vec_len, data_len),
+        259 => wire__crate__api__api__verify_2fa_impl(port, ptr, rust_vec_len, data_len),
+        260 => wire__crate__api__api__verify_2fa_sms_impl(port, ptr, rust_vec_len, data_len),
+        261 => wire__crate__api__api__write_gsa_account_impl(port, ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }
@@ -23401,47 +23933,47 @@ fn pde_ffi_dispatcher_sync_impl(
         102 => wire__crate__api__api__encode_messageproto3_impl(ptr, rust_vec_len, data_len),
         103 => wire__crate__api__api__encode_messageproto4_impl(ptr, rust_vec_len, data_len),
         117 => wire__crate__api__api__get_available_user_impl(ptr, rust_vec_len, data_len),
-        140 => wire__crate__api__api__import_watcher_impl(ptr, rust_vec_len, data_len),
-        147 => wire__crate__api__api__make_circle_sessions_impl(ptr, rust_vec_len, data_len),
-        148 => wire__crate__api__api__make_client_session_impl(ptr, rust_vec_len, data_len),
-        149 => wire__crate__api__api__make_cloud_messages_client_impl(ptr, rust_vec_len, data_len),
-        157 => wire__crate__api__api__make_keychain_impl(ptr, rust_vec_len, data_len),
-        162 => wire__crate__api__api__make_token_provider_impl(ptr, rust_vec_len, data_len),
-        164 => wire__crate__api__api__ms_to_date_impl(ptr, rust_vec_len, data_len),
-        167 => wire__crate__api__api__new_ngm_identity_impl(ptr, rust_vec_len, data_len),
-        168 => wire__crate__api__api__ns_attributed_string_decode_impl(ptr, rust_vec_len, data_len),
-        169 => wire__crate__api__api__ns_attributed_string_encode_impl(ptr, rust_vec_len, data_len),
-        170 => wire__crate__api__api__ns_null_impl(ptr, rust_vec_len, data_len),
-        171 => wire__crate__api__api__ns_number_decode_impl(ptr, rust_vec_len, data_len),
-        172 => wire__crate__api__api__ns_number_encode_impl(ptr, rust_vec_len, data_len),
-        173 => wire__crate__api__api__ns_string_decode_impl(ptr, rust_vec_len, data_len),
-        174 => wire__crate__api__api__ns_string_encode_impl(ptr, rust_vec_len, data_len),
-        175 => wire__crate__api__api__nscoder_decode_impl(ptr, rust_vec_len, data_len),
-        176 => wire__crate__api__api__nscoder_encode_impl(ptr, rust_vec_len, data_len),
-        181 => {
+        141 => wire__crate__api__api__import_watcher_impl(ptr, rust_vec_len, data_len),
+        148 => wire__crate__api__api__make_circle_sessions_impl(ptr, rust_vec_len, data_len),
+        149 => wire__crate__api__api__make_client_session_impl(ptr, rust_vec_len, data_len),
+        150 => wire__crate__api__api__make_cloud_messages_client_impl(ptr, rust_vec_len, data_len),
+        158 => wire__crate__api__api__make_keychain_impl(ptr, rust_vec_len, data_len),
+        163 => wire__crate__api__api__make_token_provider_impl(ptr, rust_vec_len, data_len),
+        165 => wire__crate__api__api__ms_to_date_impl(ptr, rust_vec_len, data_len),
+        168 => wire__crate__api__api__new_ngm_identity_impl(ptr, rust_vec_len, data_len),
+        169 => wire__crate__api__api__ns_attributed_string_decode_impl(ptr, rust_vec_len, data_len),
+        170 => wire__crate__api__api__ns_attributed_string_encode_impl(ptr, rust_vec_len, data_len),
+        171 => wire__crate__api__api__ns_null_impl(ptr, rust_vec_len, data_len),
+        172 => wire__crate__api__api__ns_number_decode_impl(ptr, rust_vec_len, data_len),
+        173 => wire__crate__api__api__ns_number_encode_impl(ptr, rust_vec_len, data_len),
+        174 => wire__crate__api__api__ns_string_decode_impl(ptr, rust_vec_len, data_len),
+        175 => wire__crate__api__api__ns_string_encode_impl(ptr, rust_vec_len, data_len),
+        176 => wire__crate__api__api__nscoder_decode_impl(ptr, rust_vec_len, data_len),
+        177 => wire__crate__api__api__nscoder_encode_impl(ptr, rust_vec_len, data_len),
+        182 => {
             wire__crate__api__api__password_manager_meta_get_data_impl(ptr, rust_vec_len, data_len)
         }
-        182 => wire__crate__api__api__password_manager_meta_get_password_data_impl(
+        183 => wire__crate__api__api__password_manager_meta_get_password_data_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        183 => wire__crate__api__api__password_manager_totp_generate_otp_impl(
+        184 => wire__crate__api__api__password_manager_totp_generate_otp_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        187 => wire__crate__api__api__read_hardware_impl(ptr, rust_vec_len, data_len),
-        198 => wire__crate__api__api__reset_anisette_impl(ptr, rust_vec_len, data_len),
-        203 => wire__crate__api__api__restore_attachment_impl(ptr, rust_vec_len, data_len),
-        204 => wire__crate__api__api__restore_cloud_chat_impl(ptr, rust_vec_len, data_len),
-        206 => wire__crate__api__api__restore_users_impl(ptr, rust_vec_len, data_len),
-        210 => wire__crate__api__api__save_cloud_chat_impl(ptr, rust_vec_len, data_len),
-        216 => wire__crate__api__api__save_users_impl(ptr, rust_vec_len, data_len),
-        223 => wire__crate__api__api__send_daemon_impl(ptr, rust_vec_len, data_len),
-        231 => wire__crate__api__api__subscribe_conn_impl(ptr, rust_vec_len, data_len),
-        239 => wire__crate__api__api__systemtime_to_millis_impl(ptr, rust_vec_len, data_len),
-        252 => wire__crate__api__api__utm_now_impl(ptr, rust_vec_len, data_len),
+        189 => wire__crate__api__api__read_hardware_impl(ptr, rust_vec_len, data_len),
+        200 => wire__crate__api__api__reset_anisette_impl(ptr, rust_vec_len, data_len),
+        205 => wire__crate__api__api__restore_attachment_impl(ptr, rust_vec_len, data_len),
+        206 => wire__crate__api__api__restore_cloud_chat_impl(ptr, rust_vec_len, data_len),
+        208 => wire__crate__api__api__restore_users_impl(ptr, rust_vec_len, data_len),
+        212 => wire__crate__api__api__save_cloud_chat_impl(ptr, rust_vec_len, data_len),
+        218 => wire__crate__api__api__save_users_impl(ptr, rust_vec_len, data_len),
+        225 => wire__crate__api__api__send_daemon_impl(ptr, rust_vec_len, data_len),
+        233 => wire__crate__api__api__subscribe_conn_impl(ptr, rust_vec_len, data_len),
+        241 => wire__crate__api__api__systemtime_to_millis_impl(ptr, rust_vec_len, data_len),
+        254 => wire__crate__api__api__utm_now_impl(ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }
@@ -23489,6 +24021,36 @@ impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive for FrbWrapper<
 
 impl flutter_rust_bridge::IntoIntoDart<FrbWrapper<APSWatcher>> for APSWatcher {
     fn into_into_dart(self) -> FrbWrapper<APSWatcher> {
+        self.into()
+    }
+}
+
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for FrbWrapper<AVConfig> {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        flutter_rust_bridge::for_generated::rust_auto_opaque_encode::<_, MoiArc<_>>(self.0)
+            .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive for FrbWrapper<AVConfig> {}
+
+impl flutter_rust_bridge::IntoIntoDart<FrbWrapper<AVConfig>> for AVConfig {
+    fn into_into_dart(self) -> FrbWrapper<AVConfig> {
+        self.into()
+    }
+}
+
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for FrbWrapper<Arc<AVSession>> {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        flutter_rust_bridge::for_generated::rust_auto_opaque_encode::<_, MoiArc<_>>(self.0)
+            .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive for FrbWrapper<Arc<AVSession>> {}
+
+impl flutter_rust_bridge::IntoIntoDart<FrbWrapper<Arc<AVSession>>> for Arc<AVSession> {
+    fn into_into_dart(self) -> FrbWrapper<Arc<AVSession>> {
         self.into()
     }
 }
@@ -24732,7 +25294,11 @@ impl flutter_rust_bridge::IntoIntoDart<FrbWrapper<crate::api::api::ChangePartici
 // Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for FrbWrapper<crate::api::api::ChatProto> {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
-        [self.0.unk1.into_into_dart().into_dart()].into_dart()
+        [
+            self.0.version.into_into_dart().into_dart(),
+            self.0.is_recovered.into_into_dart().into_dart(),
+        ]
+        .into_dart()
     }
 }
 impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
@@ -24812,19 +25378,15 @@ impl flutter_rust_bridge::IntoDart for FrbWrapper<crate::api::api::CloudMessage>
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
             self.0.utm.into_into_dart().into_dart(),
-            self.0.r#type.into_into_dart().into_dart(),
             self.0.error.into_into_dart().into_dart(),
             self.0.chat_id.into_into_dart().into_dart(),
             self.0.sender.into_into_dart().into_dart(),
             self.0.time.into_into_dart().into_dart(),
-            self.0.msg_proto_2.into_into_dart().into_dart(),
             self.0.destination_caller_id.into_into_dart().into_dart(),
-            self.0.msg_proto.into_into_dart().into_dart(),
             self.0.flags.into_into_dart().into_dart(),
             self.0.guid.into_into_dart().into_dart(),
-            self.0.msg_proto_3.into_into_dart().into_dart(),
             self.0.service.into_into_dart().into_dart(),
-            self.0.msg_proto_4.into_into_dart().into_dart(),
+            self.0.message.into_into_dart().into_dart(),
         ]
         .into_dart()
     }
@@ -24859,6 +25421,61 @@ impl flutter_rust_bridge::IntoIntoDart<FrbWrapper<crate::api::api::CloudMessageS
     for crate::api::api::CloudMessageSummary
 {
     fn into_into_dart(self) -> FrbWrapper<crate::api::api::CloudMessageSummary> {
+        self.into()
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for FrbWrapper<crate::api::api::CloudMessageType> {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        match self.0 {
+            crate::api::api::CloudMessageType::Message {
+                reaction,
+                proto,
+                proto2,
+                proto3,
+                proto4,
+            } => [
+                0.into_dart(),
+                reaction.into_into_dart().into_dart(),
+                proto.into_into_dart().into_dart(),
+                proto2.into_into_dart().into_dart(),
+                proto3.into_into_dart().into_dart(),
+                proto4.into_into_dart().into_dart(),
+            ]
+            .into_dart(),
+            crate::api::api::CloudMessageType::GroupTitleChange { proto } => {
+                [1.into_dart(), proto.into_into_dart().into_dart()].into_dart()
+            }
+            crate::api::api::CloudMessageType::LocationShareStatusChange { proto } => {
+                [2.into_dart(), proto.into_into_dart().into_dart()].into_dart()
+            }
+            crate::api::api::CloudMessageType::MessageAction { proto } => {
+                [3.into_dart(), proto.into_into_dart().into_dart()].into_dart()
+            }
+            crate::api::api::CloudMessageType::ParticipantChange { proto, proto2 } => [
+                4.into_dart(),
+                proto.into_into_dart().into_dart(),
+                proto2.into_into_dart().into_dart(),
+            ]
+            .into_dart(),
+            crate::api::api::CloudMessageType::GroupAction { proto } => {
+                [5.into_dart(), proto.into_into_dart().into_dart()].into_dart()
+            }
+            crate::api::api::CloudMessageType::Unknown => [6.into_dart()].into_dart(),
+            _ => {
+                unimplemented!("");
+            }
+        }
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for FrbWrapper<crate::api::api::CloudMessageType>
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<FrbWrapper<crate::api::api::CloudMessageType>>
+    for crate::api::api::CloudMessageType
+{
+    fn into_into_dart(self) -> FrbWrapper<crate::api::api::CloudMessageType> {
         self.into()
     }
 }
@@ -25025,6 +25642,42 @@ impl flutter_rust_bridge::IntoIntoDart<FrbWrapper<crate::api::api::DeleteTarget>
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::api::DeviceDetails {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.name.into_into_dart().into_dart(),
+            self.serial.into_into_dart().into_dart(),
+            self.os_version.into_into_dart().into_dart(),
+            self.product_name.into_into_dart().into_dart(),
+            self.board_id.into_into_dart().into_dart(),
+            self.os_build.into_into_dart().into_dart(),
+            self.platform_uuid.into_into_dart().into_dart(),
+            self.root_disk_uuid.into_into_dart().into_dart(),
+            self.mlb.into_into_dart().into_dart(),
+            self.rom.into_into_dart().into_dart(),
+            self.mac_address.into_into_dart().into_dart(),
+            self.device_id.into_into_dart().into_dart(),
+            self.protocol_version.into_into_dart().into_dart(),
+            self.icloud_user_agent.into_into_dart().into_dart(),
+            self.aoskit_version.into_into_dart().into_dart(),
+            self.relay_host.into_into_dart().into_dart(),
+            self.exportable.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::api::DeviceDetails
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::api::DeviceDetails>
+    for crate::api::api::DeviceDetails
+{
+    fn into_into_dart(self) -> crate::api::api::DeviceDetails {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for crate::api::api::DeviceInfo {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
@@ -25108,6 +25761,27 @@ impl flutter_rust_bridge::IntoIntoDart<FrbWrapper<crate::api::api::ExtensionApp>
     for crate::api::api::ExtensionApp
 {
     fn into_into_dart(self) -> FrbWrapper<crate::api::api::ExtensionApp> {
+        self.into()
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for FrbWrapper<crate::api::api::ExtraSummaryInfo> {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.0.message_summary_info.into_into_dart().into_dart(),
+            self.0.padding.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for FrbWrapper<crate::api::api::ExtraSummaryInfo>
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<FrbWrapper<crate::api::api::ExtraSummaryInfo>>
+    for crate::api::api::ExtraSummaryInfo
+{
+    fn into_into_dart(self) -> FrbWrapper<crate::api::api::ExtraSummaryInfo> {
         self.into()
     }
 }
@@ -25309,6 +25983,12 @@ impl flutter_rust_bridge::IntoDart for FrbWrapper<crate::api::api::FTMessage> {
             crate::api::api::FTMessage::RespondedElsewhere { guid } => {
                 [8.into_dart(), guid.into_into_dart().into_dart()].into_dart()
             }
+            crate::api::api::FTMessage::Connected { guid } => {
+                [9.into_dart(), guid.into_into_dart().into_dart()].into_dart()
+            }
+            crate::api::api::FTMessage::Disconnected { guid } => {
+                [10.into_dart(), guid.into_into_dart().into_dart()].into_dart()
+            }
             _ => {
                 unimplemented!("");
             }
@@ -25385,10 +26065,14 @@ impl flutter_rust_bridge::IntoDart for FrbWrapper<crate::api::api::FTSession> {
             self.0.report_id.into_into_dart().into_dart(),
             self.0.start_time.into_into_dart().into_dart(),
             self.0.last_rekey.into_into_dart().into_dart(),
-            self.0.is_propped.into_into_dart().into_dart(),
+            self.0.creation_time.into_into_dart().into_dart(),
             self.0.is_ringing_inaccurate.into_into_dart().into_dart(),
             self.0.mode.into_into_dart().into_dart(),
+            self.0.is_video.into_into_dart().into_dart(),
             self.0.recent_member_adds.into_into_dart().into_dart(),
+            self.0.connection.into_into_dart().into_dart(),
+            self.0.av_config.into_into_dart().into_dart(),
+            self.0.is_initiator.into_into_dart().into_dart(),
         ]
         .into_dart()
     }
@@ -25401,6 +26085,29 @@ impl flutter_rust_bridge::IntoIntoDart<FrbWrapper<crate::api::api::FTSession>>
     for crate::api::api::FTSession
 {
     fn into_into_dart(self) -> FrbWrapper<crate::api::api::FTSession> {
+        self.into()
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for FrbWrapper<crate::api::api::GroupAction> {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.0.version.into_into_dart().into_dart(),
+            self.0.group_action_type.into_into_dart().into_dart(),
+            self.0.other_handle.into_into_dart().into_dart(),
+            self.0.padding.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for FrbWrapper<crate::api::api::GroupAction>
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<FrbWrapper<crate::api::api::GroupAction>>
+    for crate::api::api::GroupAction
+{
+    fn into_into_dart(self) -> FrbWrapper<crate::api::api::GroupAction> {
         self.into()
     }
 }
@@ -25444,6 +26151,29 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::api::GroupSummaryMember>
 {
     fn into_into_dart(self) -> crate::api::api::GroupSummaryMember {
         self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for FrbWrapper<crate::api::api::GroupTitleChange> {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.0.version.into_into_dart().into_dart(),
+            self.0.group_title.into_into_dart().into_dart(),
+            self.0.other_handle.into_into_dart().into_dart(),
+            self.0.padding.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for FrbWrapper<crate::api::api::GroupTitleChange>
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<FrbWrapper<crate::api::api::GroupTitleChange>>
+    for crate::api::api::GroupTitleChange
+{
+    fn into_into_dart(self) -> FrbWrapper<crate::api::api::GroupTitleChange> {
+        self.into()
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
@@ -25736,6 +26466,30 @@ impl flutter_rust_bridge::IntoIntoDart<FrbWrapper<crate::api::api::Location>>
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for FrbWrapper<crate::api::api::LocationShareStatusChange> {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.0.version.into_into_dart().into_dart(),
+            self.0.share_status.into_into_dart().into_dart(),
+            self.0.share_direction.into_into_dart().into_dart(),
+            self.0.other_handle.into_into_dart().into_dart(),
+            self.0.padding.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for FrbWrapper<crate::api::api::LocationShareStatusChange>
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<FrbWrapper<crate::api::api::LocationShareStatusChange>>
+    for crate::api::api::LocationShareStatusChange
+{
+    fn into_into_dart(self) -> FrbWrapper<crate::api::api::LocationShareStatusChange> {
+        self.into()
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for FrbWrapper<crate::api::api::LoginState> {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         match self.0 {
@@ -25974,6 +26728,7 @@ impl flutter_rust_bridge::IntoDart for FrbWrapper<crate::api::api::Message> {
                 [25.into_dart(), field0.into_into_dart().into_dart()].into_dart()
             }
             crate::api::api::Message::Played => [26.into_dart()].into_dart(),
+            crate::api::api::Message::RecoverProfile => [27.into_dart()].into_dart(),
             _ => {
                 unimplemented!("");
             }
@@ -25988,6 +26743,30 @@ impl flutter_rust_bridge::IntoIntoDart<FrbWrapper<crate::api::api::Message>>
     for crate::api::api::Message
 {
     fn into_into_dart(self) -> FrbWrapper<crate::api::api::Message> {
+        self.into()
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for FrbWrapper<crate::api::api::MessageAction> {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.0.version.into_into_dart().into_dart(),
+            self.0.message_action_type.into_into_dart().into_dart(),
+            self.0.other_handle.into_into_dart().into_dart(),
+            self.0.original_message_guid.into_into_dart().into_dart(),
+            self.0.padding.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for FrbWrapper<crate::api::api::MessageAction>
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<FrbWrapper<crate::api::api::MessageAction>>
+    for crate::api::api::MessageAction
+{
+    fn into_into_dart(self) -> FrbWrapper<crate::api::api::MessageAction> {
         self.into()
     }
 }
@@ -26122,7 +26901,7 @@ impl flutter_rust_bridge::IntoIntoDart<FrbWrapper<crate::api::api::MessageParts>
 impl flutter_rust_bridge::IntoDart for FrbWrapper<crate::api::api::MessageProto> {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
-            self.0.unk1.into_into_dart().into_dart(),
+            self.0.version.into_into_dart().into_dart(),
             self.0.subject.into_into_dart().into_dart(),
             self.0.text.into_into_dart().into_dart(),
             self.0.attributed_body.into_into_dart().into_dart(),
@@ -26131,10 +26910,13 @@ impl flutter_rust_bridge::IntoDart for FrbWrapper<crate::api::api::MessageProto>
             self.0.message_summary_info.into_into_dart().into_dart(),
             self.0.effect.into_into_dart().into_dart(),
             self.0.date_read.into_into_dart().into_dart(),
-            self.0.unk10.into_into_dart().into_dart(),
-            self.0.unk11.into_into_dart().into_dart(),
+            self.0.time_played.into_into_dart().into_dart(),
+            self.0
+                .time_expressive_sent_played
+                .into_into_dart()
+                .into_dart(),
             self.0.date_delivered.into_into_dart().into_dart(),
-            self.0.unk14.into_into_dart().into_dart(),
+            self.0.expire_state.into_into_dart().into_dart(),
             self.0.associated_message_type.into_into_dart().into_dart(),
             self.0.associated_message_guid.into_into_dart().into_dart(),
             self.0
@@ -26163,7 +26945,12 @@ impl flutter_rust_bridge::IntoIntoDart<FrbWrapper<crate::api::api::MessageProto>
 // Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for FrbWrapper<crate::api::api::MessageProto2> {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
-        [self.0.reply.into_into_dart().into_dart()].into_dart()
+        [
+            self.0.version.into_into_dart().into_dart(),
+            self.0.reply.into_into_dart().into_dart(),
+            self.0.padding.into_into_dart().into_dart(),
+        ]
+        .into_dart()
     }
 }
 impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
@@ -26181,8 +26968,10 @@ impl flutter_rust_bridge::IntoIntoDart<FrbWrapper<crate::api::api::MessageProto2
 impl flutter_rust_bridge::IntoDart for FrbWrapper<crate::api::api::MessageProto3> {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
-            self.0.unk2.into_into_dart().into_dart(),
-            self.0.unk3.into_into_dart().into_dart(),
+            self.0.version.into_into_dart().into_dart(),
+            self.0.cmm_state.into_into_dart().into_dart(),
+            self.0.cmm_asset_offset.into_into_dart().into_dart(),
+            self.0.padding.into_into_dart().into_dart(),
         ]
         .into_dart()
     }
@@ -26202,7 +26991,9 @@ impl flutter_rust_bridge::IntoIntoDart<FrbWrapper<crate::api::api::MessageProto3
 impl flutter_rust_bridge::IntoDart for FrbWrapper<crate::api::api::MessageProto4> {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
+            self.0.version.into_into_dart().into_dart(),
             self.0.associated_message_emoji.into_into_dart().into_dart(),
+            self.0.padding.into_into_dart().into_dart(),
             self.0.service.into_into_dart().into_dart(),
             self.0.schedule_type.into_into_dart().into_dart(),
             self.0.schedule_state.into_into_dart().into_dart(),
@@ -26323,10 +27114,7 @@ impl flutter_rust_bridge::IntoIntoDart<FrbWrapper<crate::api::api::MessageType>>
 impl flutter_rust_bridge::IntoDart for FrbWrapper<crate::api::api::MMCSAttachmentMeta> {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
-            self.0.mmcs_signature_hex.into_into_dart().into_dart(),
-            self.0.mmcs_owner.into_into_dart().into_dart(),
-            self.0.mmcs_url.into_into_dart().into_dart(),
-            self.0.decryption_key.into_into_dart().into_dart(),
+            self.0.files.into_into_dart().into_dart(),
             self.0.inline_attachment.into_into_dart().into_dart(),
             self.0.message_part.into_into_dart().into_dart(),
             self.0.file_size.into_into_dart().into_dart(),
@@ -26711,6 +27499,29 @@ impl flutter_rust_bridge::IntoIntoDart<FrbWrapper<crate::api::api::PartExtension
     for crate::api::api::PartExtension
 {
     fn into_into_dart(self) -> FrbWrapper<crate::api::api::PartExtension> {
+        self.into()
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for FrbWrapper<crate::api::api::ParticipantChange> {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.0.version.into_into_dart().into_dart(),
+            self.0.participant_change_type.into_into_dart().into_dart(),
+            self.0.other_handle.into_into_dart().into_dart(),
+            self.0.padding.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for FrbWrapper<crate::api::api::ParticipantChange>
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<FrbWrapper<crate::api::api::ParticipantChange>>
+    for crate::api::api::ParticipantChange
+{
+    fn into_into_dart(self) -> FrbWrapper<crate::api::api::ParticipantChange> {
         self.into()
     }
 }
@@ -28569,6 +29380,20 @@ impl SseEncode for APSWatcher {
     }
 }
 
+impl SseEncode for AVConfig {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<AVConfig>>>::sse_encode(flutter_rust_bridge::for_generated::rust_auto_opaque_encode::<_, MoiArc<_>>(self), serializer);
+    }
+}
+
+impl SseEncode for Arc<AVSession> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Arc < AVSession >>>>::sse_encode(flutter_rust_bridge::for_generated::rust_auto_opaque_encode::<_, MoiArc<_>>(self), serializer);
+    }
+}
+
 impl SseEncode for ArcAnisetteClient<DefaultAnisetteProvider> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -29362,6 +30187,28 @@ impl SseEncode
 }
 
 impl SseEncode
+    for RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<AVConfig>>
+{
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        let (ptr, size) = self.sse_encode_raw();
+        <usize>::sse_encode(ptr, serializer);
+        <i32>::sse_encode(size, serializer);
+    }
+}
+
+impl SseEncode
+    for RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Arc<AVSession>>>
+{
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        let (ptr, size) = self.sse_encode_raw();
+        <usize>::sse_encode(ptr, serializer);
+        <i32>::sse_encode(size, serializer);
+    }
+}
+
+impl SseEncode
     for RustOpaqueMoi<
         flutter_rust_bridge::for_generated::RustAutoOpaqueInner<
             ArcAnisetteClient<DefaultAnisetteProvider>,
@@ -30100,7 +30947,7 @@ impl SseEncode for crate::api::api::AttachmentType {
             }
             crate::api::api::AttachmentType::MMCS(field0) => {
                 <i32>::sse_encode(1, serializer);
-                <crate::api::api::MMCSFile>::sse_encode(field0, serializer);
+                <Vec<crate::api::api::MMCSFile>>::sse_encode(field0, serializer);
             }
             _ => {
                 unimplemented!("");
@@ -30201,7 +31048,8 @@ impl SseEncode for crate::api::api::ChangeParticipantMessage {
 impl SseEncode for crate::api::api::ChatProto {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        <Option<u32>>::sse_encode(self.unk1, serializer);
+        <Option<u32>>::sse_encode(self.version, serializer);
+        <Option<u32>>::sse_encode(self.is_recovered, serializer);
     }
 }
 
@@ -30241,19 +31089,15 @@ impl SseEncode for crate::api::api::CloudMessage {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <Option<SystemTime>>::sse_encode(self.utm, serializer);
-        <i64>::sse_encode(self.r#type, serializer);
         <i64>::sse_encode(self.error, serializer);
         <String>::sse_encode(self.chat_id, serializer);
         <String>::sse_encode(self.sender, serializer);
         <i64>::sse_encode(self.time, serializer);
-        <Option<GZipWrapper<MessageProto2>>>::sse_encode(self.msg_proto_2, serializer);
         <String>::sse_encode(self.destination_caller_id, serializer);
-        <GZipWrapper<MessageProto>>::sse_encode(self.msg_proto, serializer);
         <MessageFlags>::sse_encode(self.flags, serializer);
         <String>::sse_encode(self.guid, serializer);
-        <Option<GZipWrapper<MessageProto3>>>::sse_encode(self.msg_proto_3, serializer);
         <String>::sse_encode(self.service, serializer);
-        <Option<GZipWrapper<MessageProto4>>>::sse_encode(self.msg_proto_4, serializer);
+        <crate::api::api::CloudMessageType>::sse_encode(self.message, serializer);
     }
 }
 
@@ -30263,6 +31107,55 @@ impl SseEncode for crate::api::api::CloudMessageSummary {
         <Vec<i64>>::sse_encode(self.messages_summary, serializer);
         <Vec<i64>>::sse_encode(self.chat_summary, serializer);
         <Vec<i64>>::sse_encode(self.attachment_summary, serializer);
+    }
+}
+
+impl SseEncode for crate::api::api::CloudMessageType {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        match self {
+            crate::api::api::CloudMessageType::Message {
+                reaction,
+                proto,
+                proto2,
+                proto3,
+                proto4,
+            } => {
+                <i32>::sse_encode(0, serializer);
+                <bool>::sse_encode(reaction, serializer);
+                <crate::api::api::MessageProto>::sse_encode(proto, serializer);
+                <Option<crate::api::api::MessageProto2>>::sse_encode(proto2, serializer);
+                <Option<crate::api::api::MessageProto3>>::sse_encode(proto3, serializer);
+                <Option<crate::api::api::MessageProto4>>::sse_encode(proto4, serializer);
+            }
+            crate::api::api::CloudMessageType::GroupTitleChange { proto } => {
+                <i32>::sse_encode(1, serializer);
+                <crate::api::api::GroupTitleChange>::sse_encode(proto, serializer);
+            }
+            crate::api::api::CloudMessageType::LocationShareStatusChange { proto } => {
+                <i32>::sse_encode(2, serializer);
+                <crate::api::api::LocationShareStatusChange>::sse_encode(proto, serializer);
+            }
+            crate::api::api::CloudMessageType::MessageAction { proto } => {
+                <i32>::sse_encode(3, serializer);
+                <crate::api::api::MessageAction>::sse_encode(proto, serializer);
+            }
+            crate::api::api::CloudMessageType::ParticipantChange { proto, proto2 } => {
+                <i32>::sse_encode(4, serializer);
+                <crate::api::api::ParticipantChange>::sse_encode(proto, serializer);
+                <Option<crate::api::api::ExtraSummaryInfo>>::sse_encode(proto2, serializer);
+            }
+            crate::api::api::CloudMessageType::GroupAction { proto } => {
+                <i32>::sse_encode(5, serializer);
+                <crate::api::api::GroupAction>::sse_encode(proto, serializer);
+            }
+            crate::api::api::CloudMessageType::Unknown => {
+                <i32>::sse_encode(6, serializer);
+            }
+            _ => {
+                unimplemented!("");
+            }
+        }
     }
 }
 
@@ -30348,6 +31241,29 @@ impl SseEncode for crate::api::api::DeleteTarget {
     }
 }
 
+impl SseEncode for crate::api::api::DeviceDetails {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.name, serializer);
+        <String>::sse_encode(self.serial, serializer);
+        <String>::sse_encode(self.os_version, serializer);
+        <Option<String>>::sse_encode(self.product_name, serializer);
+        <Option<String>>::sse_encode(self.board_id, serializer);
+        <Option<String>>::sse_encode(self.os_build, serializer);
+        <Option<String>>::sse_encode(self.platform_uuid, serializer);
+        <Option<String>>::sse_encode(self.root_disk_uuid, serializer);
+        <Option<String>>::sse_encode(self.mlb, serializer);
+        <Option<String>>::sse_encode(self.rom, serializer);
+        <Option<String>>::sse_encode(self.mac_address, serializer);
+        <Option<String>>::sse_encode(self.device_id, serializer);
+        <Option<u32>>::sse_encode(self.protocol_version, serializer);
+        <Option<String>>::sse_encode(self.icloud_user_agent, serializer);
+        <Option<String>>::sse_encode(self.aoskit_version, serializer);
+        <Option<String>>::sse_encode(self.relay_host, serializer);
+        <bool>::sse_encode(self.exportable, serializer);
+    }
+}
+
 impl SseEncode for crate::api::api::DeviceInfo {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -30383,6 +31299,14 @@ impl SseEncode for crate::api::api::ExtensionApp {
         <Option<u64>>::sse_encode(self.app_id, serializer);
         <String>::sse_encode(self.bundle_id, serializer);
         <Option<crate::api::api::Balloon>>::sse_encode(self.balloon, serializer);
+    }
+}
+
+impl SseEncode for crate::api::api::ExtraSummaryInfo {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Option<Vec<u8>>>::sse_encode(self.message_summary_info, serializer);
+        <Option<Vec<u8>>>::sse_encode(self.padding, serializer);
     }
 }
 
@@ -30543,6 +31467,14 @@ impl SseEncode for crate::api::api::FTMessage {
                 <i32>::sse_encode(8, serializer);
                 <String>::sse_encode(guid, serializer);
             }
+            crate::api::api::FTMessage::Connected { guid } => {
+                <i32>::sse_encode(9, serializer);
+                <String>::sse_encode(guid, serializer);
+            }
+            crate::api::api::FTMessage::Disconnected { guid } => {
+                <i32>::sse_encode(10, serializer);
+                <String>::sse_encode(guid, serializer);
+            }
             _ => {
                 unimplemented!("");
             }
@@ -30596,10 +31528,24 @@ impl SseEncode for crate::api::api::FTSession {
         <String>::sse_encode(self.report_id, serializer);
         <Option<u64>>::sse_encode(self.start_time, serializer);
         <Option<u64>>::sse_encode(self.last_rekey, serializer);
-        <bool>::sse_encode(self.is_propped, serializer);
+        <u64>::sse_encode(self.creation_time, serializer);
         <bool>::sse_encode(self.is_ringing_inaccurate, serializer);
         <Option<crate::api::api::FTMode>>::sse_encode(self.mode, serializer);
+        <bool>::sse_encode(self.is_video, serializer);
         <std::collections::HashMap<String, u64>>::sse_encode(self.recent_member_adds, serializer);
+        <Option<Arc<AVSession>>>::sse_encode(self.connection, serializer);
+        <AVConfig>::sse_encode(self.av_config, serializer);
+        <bool>::sse_encode(self.is_initiator, serializer);
+    }
+}
+
+impl SseEncode for crate::api::api::GroupAction {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Option<u32>>::sse_encode(self.version, serializer);
+        <Option<i64>>::sse_encode(self.group_action_type, serializer);
+        <Option<String>>::sse_encode(self.other_handle, serializer);
+        <Option<Vec<u8>>>::sse_encode(self.padding, serializer);
     }
 }
 
@@ -30619,6 +31565,16 @@ impl SseEncode for crate::api::api::GroupSummaryMember {
         <String>::sse_encode(self.handle, serializer);
         <Option<String>>::sse_encode(self.user_id, serializer);
         <bool>::sse_encode(self.is_joined, serializer);
+    }
+}
+
+impl SseEncode for crate::api::api::GroupTitleChange {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Option<u32>>::sse_encode(self.version, serializer);
+        <Option<String>>::sse_encode(self.group_title, serializer);
+        <Option<String>>::sse_encode(self.other_handle, serializer);
+        <Option<Vec<u8>>>::sse_encode(self.padding, serializer);
     }
 }
 
@@ -30787,6 +31743,16 @@ impl SseEncode for Vec<ViableBottle> {
     }
 }
 
+impl SseEncode for Vec<i64> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <i64>::sse_encode(item, serializer);
+        }
+    }
+}
+
 impl SseEncode for Vec<String> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -30907,6 +31873,16 @@ impl SseEncode for Vec<crate::api::api::MessageTarget> {
     }
 }
 
+impl SseEncode for Vec<crate::api::api::MMCSFile> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::api::MMCSFile>::sse_encode(item, serializer);
+        }
+    }
+}
+
 impl SseEncode for Vec<crate::api::api::PasswordManagerAltDomain> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -30963,16 +31939,6 @@ impl SseEncode for Vec<f64> {
         <i32>::sse_encode(self.len() as _, serializer);
         for item in self {
             <f64>::sse_encode(item, serializer);
-        }
-    }
-}
-
-impl SseEncode for Vec<i64> {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        <i32>::sse_encode(self.len() as _, serializer);
-        for item in self {
-            <i64>::sse_encode(item, serializer);
         }
     }
 }
@@ -31330,6 +32296,17 @@ impl SseEncode for crate::api::api::Location {
     }
 }
 
+impl SseEncode for crate::api::api::LocationShareStatusChange {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Option<u32>>::sse_encode(self.version, serializer);
+        <Option<i64>>::sse_encode(self.share_status, serializer);
+        <Option<i64>>::sse_encode(self.share_direction, serializer);
+        <Option<String>>::sse_encode(self.other_handle, serializer);
+        <Option<Vec<u8>>>::sse_encode(self.padding, serializer);
+    }
+}
+
 impl SseEncode for crate::api::api::LoginState {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -31545,10 +32522,24 @@ impl SseEncode for crate::api::api::Message {
             crate::api::api::Message::Played => {
                 <i32>::sse_encode(26, serializer);
             }
+            crate::api::api::Message::RecoverProfile => {
+                <i32>::sse_encode(27, serializer);
+            }
             _ => {
                 unimplemented!("");
             }
         }
+    }
+}
+
+impl SseEncode for crate::api::api::MessageAction {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Option<u32>>::sse_encode(self.version, serializer);
+        <Option<i64>>::sse_encode(self.message_action_type, serializer);
+        <Option<String>>::sse_encode(self.other_handle, serializer);
+        <Option<String>>::sse_encode(self.original_message_guid, serializer);
+        <Option<Vec<u8>>>::sse_encode(self.padding, serializer);
     }
 }
 
@@ -31623,7 +32614,7 @@ impl SseEncode for crate::api::api::MessageParts {
 impl SseEncode for crate::api::api::MessageProto {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        <u32>::sse_encode(self.unk1, serializer);
+        <u32>::sse_encode(self.version, serializer);
         <Option<String>>::sse_encode(self.subject, serializer);
         <Option<String>>::sse_encode(self.text, serializer);
         <Option<Vec<u8>>>::sse_encode(self.attributed_body, serializer);
@@ -31632,10 +32623,10 @@ impl SseEncode for crate::api::api::MessageProto {
         <Option<Vec<u8>>>::sse_encode(self.message_summary_info, serializer);
         <Option<String>>::sse_encode(self.effect, serializer);
         <Option<u64>>::sse_encode(self.date_read, serializer);
-        <Option<u32>>::sse_encode(self.unk10, serializer);
-        <Option<u32>>::sse_encode(self.unk11, serializer);
+        <Option<u32>>::sse_encode(self.time_played, serializer);
+        <Option<u32>>::sse_encode(self.time_expressive_sent_played, serializer);
         <Option<u64>>::sse_encode(self.date_delivered, serializer);
-        <Option<u32>>::sse_encode(self.unk14, serializer);
+        <Option<u32>>::sse_encode(self.expire_state, serializer);
         <Option<u32>>::sse_encode(self.associated_message_type, serializer);
         <Option<String>>::sse_encode(self.associated_message_guid, serializer);
         <Option<u32>>::sse_encode(self.associated_message_range_location, serializer);
@@ -31646,22 +32637,28 @@ impl SseEncode for crate::api::api::MessageProto {
 impl SseEncode for crate::api::api::MessageProto2 {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Option<u32>>::sse_encode(self.version, serializer);
         <Option<String>>::sse_encode(self.reply, serializer);
+        <Option<Vec<u8>>>::sse_encode(self.padding, serializer);
     }
 }
 
 impl SseEncode for crate::api::api::MessageProto3 {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        <Option<u32>>::sse_encode(self.unk2, serializer);
-        <Option<u32>>::sse_encode(self.unk3, serializer);
+        <Option<u32>>::sse_encode(self.version, serializer);
+        <Option<u32>>::sse_encode(self.cmm_state, serializer);
+        <Option<u32>>::sse_encode(self.cmm_asset_offset, serializer);
+        <Option<Vec<u8>>>::sse_encode(self.padding, serializer);
     }
 }
 
 impl SseEncode for crate::api::api::MessageProto4 {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Option<u32>>::sse_encode(self.version, serializer);
         <Option<String>>::sse_encode(self.associated_message_emoji, serializer);
+        <Option<Vec<u8>>>::sse_encode(self.padding, serializer);
         <Option<String>>::sse_encode(self.service, serializer);
         <Option<u32>>::sse_encode(self.schedule_type, serializer);
         <Option<u32>>::sse_encode(self.schedule_state, serializer);
@@ -31740,10 +32737,7 @@ impl SseEncode for crate::api::api::MessageType {
 impl SseEncode for crate::api::api::MMCSAttachmentMeta {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        <Option<String>>::sse_encode(self.mmcs_signature_hex, serializer);
-        <Option<String>>::sse_encode(self.mmcs_owner, serializer);
-        <Option<String>>::sse_encode(self.mmcs_url, serializer);
-        <Option<String>>::sse_encode(self.decryption_key, serializer);
+        <Vec<crate::api::api::MMCSFile>>::sse_encode(self.files, serializer);
         <Option<String>>::sse_encode(self.inline_attachment, serializer);
         <Option<String>>::sse_encode(self.message_part, serializer);
         <Option<crate::api::api::NumOrString>>::sse_encode(self.file_size, serializer);
@@ -31956,6 +32950,16 @@ impl SseEncode for Option<APSState> {
     }
 }
 
+impl SseEncode for Option<Arc<AVSession>> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <Arc<AVSession>>::sse_encode(value, serializer);
+        }
+    }
+}
+
 impl SseEncode for Option<Arc<CloudKitClient<DefaultAnisetteProvider>>> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -32082,36 +33086,6 @@ impl SseEncode for Option<GZipWrapper<ChatProto>> {
         <bool>::sse_encode(self.is_some(), serializer);
         if let Some(value) = self {
             <GZipWrapper<ChatProto>>::sse_encode(value, serializer);
-        }
-    }
-}
-
-impl SseEncode for Option<GZipWrapper<MessageProto2>> {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        <bool>::sse_encode(self.is_some(), serializer);
-        if let Some(value) = self {
-            <GZipWrapper<MessageProto2>>::sse_encode(value, serializer);
-        }
-    }
-}
-
-impl SseEncode for Option<GZipWrapper<MessageProto3>> {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        <bool>::sse_encode(self.is_some(), serializer);
-        if let Some(value) = self {
-            <GZipWrapper<MessageProto3>>::sse_encode(value, serializer);
-        }
-    }
-}
-
-impl SseEncode for Option<GZipWrapper<MessageProto4>> {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        <bool>::sse_encode(self.is_some(), serializer);
-        if let Some(value) = self {
-            <GZipWrapper<MessageProto4>>::sse_encode(value, serializer);
         }
     }
 }
@@ -32336,6 +33310,16 @@ impl SseEncode for Option<crate::api::api::ExtensionApp> {
     }
 }
 
+impl SseEncode for Option<crate::api::api::ExtraSummaryInfo> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <crate::api::api::ExtraSummaryInfo>::sse_encode(value, serializer);
+        }
+    }
+}
+
 impl SseEncode for Option<f64> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -32442,6 +33426,36 @@ impl SseEncode for Option<crate::api::api::LPSpecializationMetadata> {
         <bool>::sse_encode(self.is_some(), serializer);
         if let Some(value) = self {
             <crate::api::api::LPSpecializationMetadata>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<crate::api::api::MessageProto2> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <crate::api::api::MessageProto2>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<crate::api::api::MessageProto3> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <crate::api::api::MessageProto3>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<crate::api::api::MessageProto4> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <crate::api::api::MessageProto4>::sse_encode(value, serializer);
         }
     }
 }
@@ -32556,22 +33570,32 @@ impl SseEncode for Option<(crate::api::api::SharedPushState, APSWatcher)> {
     }
 }
 
-impl SseEncode for Option<(String, String)> {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        <bool>::sse_encode(self.is_some(), serializer);
-        if let Some(value) = self {
-            <(String, String)>::sse_encode(value, serializer);
-        }
-    }
-}
-
 impl SseEncode for Option<(String, u64)> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <bool>::sse_encode(self.is_some(), serializer);
         if let Some(value) = self {
             <(String, u64)>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<(String, Vec<u8>)> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <(String, Vec<u8>)>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<(String, String)> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <(String, String)>::sse_encode(value, serializer);
         }
     }
 }
@@ -32764,6 +33788,16 @@ impl SseEncode for crate::api::api::PartExtension {
                 unimplemented!("");
             }
         }
+    }
+}
+
+impl SseEncode for crate::api::api::ParticipantChange {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Option<u32>>::sse_encode(self.version, serializer);
+        <Option<i64>>::sse_encode(self.participant_change_type, serializer);
+        <Option<String>>::sse_encode(self.other_handle, serializer);
+        <Option<Vec<u8>>>::sse_encode(self.padding, serializer);
     }
 }
 
@@ -33720,19 +34754,19 @@ impl SseEncode for (String, crate::api::api::UpdateAccountFinish) {
     }
 }
 
-impl SseEncode for (u32, crate::api::api::NSDictionaryTypedCoder) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        <u32>::sse_encode(self.0, serializer);
-        <crate::api::api::NSDictionaryTypedCoder>::sse_encode(self.1, serializer);
-    }
-}
-
 impl SseEncode for (u32, u64) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <u32>::sse_encode(self.0, serializer);
         <u64>::sse_encode(self.1, serializer);
+    }
+}
+
+impl SseEncode for (u32, crate::api::api::NSDictionaryTypedCoder) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <u32>::sse_encode(self.0, serializer);
+        <crate::api::api::NSDictionaryTypedCoder>::sse_encode(self.1, serializer);
     }
 }
 
@@ -34336,49 +35370,77 @@ mod io {
     flutter_rust_bridge::frb_generated_boilerplate_io!();
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAPSConnection(
+    pub extern "C" fn frbgen_frbdart_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAPSConnection(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<APSConnection>>::increment_strong_count(ptr as _);
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAPSConnection(
+    pub extern "C" fn frbgen_frbdart_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAPSConnection(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<APSConnection>>::decrement_strong_count(ptr as _);
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAPSState(
+    pub extern "C" fn frbgen_frbdart_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAPSState(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<APSState>>::increment_strong_count(ptr as _);
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAPSState(
+    pub extern "C" fn frbgen_frbdart_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAPSState(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<APSState>>::decrement_strong_count(ptr as _);
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAPSWatcher(
+    pub extern "C" fn frbgen_frbdart_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAPSWatcher(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<APSWatcher>>::increment_strong_count(ptr as _);
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAPSWatcher(
+    pub extern "C" fn frbgen_frbdart_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAPSWatcher(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<APSWatcher>>::decrement_strong_count(ptr as _);
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcAnisetteClientDefaultAnisetteProvider(
+    pub extern "C" fn frbgen_frbdart_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAVConfig(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<AVConfig>>::increment_strong_count(ptr as _);
+    }
+
+    #[no_mangle]
+    pub extern "C" fn frbgen_frbdart_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAVConfig(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<AVConfig>>::decrement_strong_count(ptr as _);
+    }
+
+    #[no_mangle]
+    pub extern "C" fn frbgen_frbdart_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcAVSession(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Arc < AVSession >>>::increment_strong_count(ptr as _);
+    }
+
+    #[no_mangle]
+    pub extern "C" fn frbgen_frbdart_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcAVSession(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Arc < AVSession >>>::decrement_strong_count(ptr as _);
+    }
+
+    #[no_mangle]
+    pub extern "C" fn frbgen_frbdart_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcAnisetteClientDefaultAnisetteProvider(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<
@@ -34389,7 +35451,7 @@ mod io {
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcAnisetteClientDefaultAnisetteProvider(
+    pub extern "C" fn frbgen_frbdart_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcAnisetteClientDefaultAnisetteProvider(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<
@@ -34400,7 +35462,7 @@ mod io {
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcCloudKitClientDefaultAnisetteProvider(
+    pub extern "C" fn frbgen_frbdart_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcCloudKitClientDefaultAnisetteProvider(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<
@@ -34411,7 +35473,7 @@ mod io {
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcCloudKitClientDefaultAnisetteProvider(
+    pub extern "C" fn frbgen_frbdart_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcCloudKitClientDefaultAnisetteProvider(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<
@@ -34422,7 +35484,7 @@ mod io {
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcCloudMessagesClientDefaultAnisetteProvider(
+    pub extern "C" fn frbgen_frbdart_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcCloudMessagesClientDefaultAnisetteProvider(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<
@@ -34433,7 +35495,7 @@ mod io {
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcCloudMessagesClientDefaultAnisetteProvider(
+    pub extern "C" fn frbgen_frbdart_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcCloudMessagesClientDefaultAnisetteProvider(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<
@@ -34444,21 +35506,21 @@ mod io {
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcFTClient(
+    pub extern "C" fn frbgen_frbdart_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcFTClient(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Arc < FTClient >>>::increment_strong_count(ptr as _);
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcFTClient(
+    pub extern "C" fn frbgen_frbdart_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcFTClient(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Arc < FTClient >>>::decrement_strong_count(ptr as _);
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcFindMyClientDefaultAnisetteProvider(
+    pub extern "C" fn frbgen_frbdart_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcFindMyClientDefaultAnisetteProvider(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<
@@ -34469,7 +35531,7 @@ mod io {
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcFindMyClientDefaultAnisetteProvider(
+    pub extern "C" fn frbgen_frbdart_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcFindMyClientDefaultAnisetteProvider(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<
@@ -34480,35 +35542,35 @@ mod io {
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcIMClient(
+    pub extern "C" fn frbgen_frbdart_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcIMClient(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Arc < IMClient >>>::increment_strong_count(ptr as _);
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcIMClient(
+    pub extern "C" fn frbgen_frbdart_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcIMClient(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Arc < IMClient >>>::decrement_strong_count(ptr as _);
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcIdmsAuthListener(
+    pub extern "C" fn frbgen_frbdart_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcIdmsAuthListener(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Arc < IdmsAuthListener >>>::increment_strong_count(ptr as _);
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcIdmsAuthListener(
+    pub extern "C" fn frbgen_frbdart_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcIdmsAuthListener(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Arc < IdmsAuthListener >>>::decrement_strong_count(ptr as _);
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcKeychainClientDefaultAnisetteProvider(
+    pub extern "C" fn frbgen_frbdart_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcKeychainClientDefaultAnisetteProvider(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<
@@ -34519,7 +35581,7 @@ mod io {
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcKeychainClientDefaultAnisetteProvider(
+    pub extern "C" fn frbgen_frbdart_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcKeychainClientDefaultAnisetteProvider(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<
@@ -34530,7 +35592,7 @@ mod io {
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcMutexAppleAccountDefaultAnisetteProvider(
+    pub extern "C" fn frbgen_frbdart_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcMutexAppleAccountDefaultAnisetteProvider(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<
@@ -34541,7 +35603,7 @@ mod io {
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcMutexAppleAccountDefaultAnisetteProvider(
+    pub extern "C" fn frbgen_frbdart_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcMutexAppleAccountDefaultAnisetteProvider(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<
@@ -34552,7 +35614,7 @@ mod io {
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcMutexOptionCircleClientSessionDefaultAnisetteProvider(
+    pub extern "C" fn frbgen_frbdart_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcMutexOptionCircleClientSessionDefaultAnisetteProvider(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<
@@ -34563,7 +35625,7 @@ mod io {
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcMutexOptionCircleClientSessionDefaultAnisetteProvider(
+    pub extern "C" fn frbgen_frbdart_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcMutexOptionCircleClientSessionDefaultAnisetteProvider(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<
@@ -34574,7 +35636,7 @@ mod io {
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcMutexVecActiveCircleSession(
+    pub extern "C" fn frbgen_frbdart_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcMutexVecActiveCircleSession(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<
@@ -34585,7 +35647,7 @@ mod io {
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcMutexVecActiveCircleSession(
+    pub extern "C" fn frbgen_frbdart_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcMutexVecActiveCircleSession(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<
@@ -34596,7 +35658,7 @@ mod io {
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcPasswordManagerDefaultAnisetteProvider(
+    pub extern "C" fn frbgen_frbdart_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcPasswordManagerDefaultAnisetteProvider(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<
@@ -34607,7 +35669,7 @@ mod io {
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcPasswordManagerDefaultAnisetteProvider(
+    pub extern "C" fn frbgen_frbdart_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcPasswordManagerDefaultAnisetteProvider(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<
@@ -34618,7 +35680,7 @@ mod io {
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcProfilesClientDefaultAnisetteProvider(
+    pub extern "C" fn frbgen_frbdart_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcProfilesClientDefaultAnisetteProvider(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<
@@ -34629,7 +35691,7 @@ mod io {
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcProfilesClientDefaultAnisetteProvider(
+    pub extern "C" fn frbgen_frbdart_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcProfilesClientDefaultAnisetteProvider(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<
@@ -34640,35 +35702,35 @@ mod io {
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcSenderPushMessage(
+    pub extern "C" fn frbgen_frbdart_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcSenderPushMessage(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Arc < Sender < PushMessage > >>>::increment_strong_count(ptr as _);
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcSenderPushMessage(
+    pub extern "C" fn frbgen_frbdart_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcSenderPushMessage(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Arc < Sender < PushMessage > >>>::decrement_strong_count(ptr as _);
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcSharedPushState(
+    pub extern "C" fn frbgen_frbdart_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcSharedPushState(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Arc < SharedPushState >>>::increment_strong_count(ptr as _);
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcSharedPushState(
+    pub extern "C" fn frbgen_frbdart_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcSharedPushState(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Arc < SharedPushState >>>::decrement_strong_count(ptr as _);
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcStatusKitClientDefaultAnisetteProvider(
+    pub extern "C" fn frbgen_frbdart_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcStatusKitClientDefaultAnisetteProvider(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<
@@ -34679,7 +35741,7 @@ mod io {
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcStatusKitClientDefaultAnisetteProvider(
+    pub extern "C" fn frbgen_frbdart_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcStatusKitClientDefaultAnisetteProvider(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<
@@ -34690,7 +35752,7 @@ mod io {
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcTokenProviderDefaultAnisetteProvider(
+    pub extern "C" fn frbgen_frbdart_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcTokenProviderDefaultAnisetteProvider(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<
@@ -34701,7 +35763,7 @@ mod io {
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcTokenProviderDefaultAnisetteProvider(
+    pub extern "C" fn frbgen_frbdart_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcTokenProviderDefaultAnisetteProvider(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<
@@ -34712,35 +35774,35 @@ mod io {
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAsset(
+    pub extern "C" fn frbgen_frbdart_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAsset(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Asset>>::increment_strong_count(ptr as _);
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAsset(
+    pub extern "C" fn frbgen_frbdart_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAsset(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Asset>>::decrement_strong_count(ptr as _);
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChannelInterestToken(
+    pub extern "C" fn frbgen_frbdart_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChannelInterestToken(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ChannelInterestToken>>::increment_strong_count(ptr as _);
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChannelInterestToken(
+    pub extern "C" fn frbgen_frbdart_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChannelInterestToken(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ChannelInterestToken>>::decrement_strong_count(ptr as _);
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCircleClientSessionDefaultAnisetteProvider(
+    pub extern "C" fn frbgen_frbdart_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCircleClientSessionDefaultAnisetteProvider(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<
@@ -34751,7 +35813,7 @@ mod io {
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCircleClientSessionDefaultAnisetteProvider(
+    pub extern "C" fn frbgen_frbdart_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCircleClientSessionDefaultAnisetteProvider(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<
@@ -34762,63 +35824,63 @@ mod io {
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerConversationLink(
+    pub extern "C" fn frbgen_frbdart_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerConversationLink(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ConversationLink>>::increment_strong_count(ptr as _);
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerConversationLink(
+    pub extern "C" fn frbgen_frbdart_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerConversationLink(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ConversationLink>>::decrement_strong_count(ptr as _);
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerConversationParticipant(
+    pub extern "C" fn frbgen_frbdart_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerConversationParticipant(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ConversationParticipant>>::increment_strong_count(ptr as _);
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerConversationParticipant(
+    pub extern "C" fn frbgen_frbdart_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerConversationParticipant(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ConversationParticipant>>::decrement_strong_count(ptr as _);
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDate(
+    pub extern "C" fn frbgen_frbdart_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDate(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner< Date>>::increment_strong_count(ptr as _);
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDate(
+    pub extern "C" fn frbgen_frbdart_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDate(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner< Date>>::decrement_strong_count(ptr as _);
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerEscrowData(
+    pub extern "C" fn frbgen_frbdart_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerEscrowData(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<EscrowData>>::increment_strong_count(ptr as _);
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerEscrowData(
+    pub extern "C" fn frbgen_frbdart_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerEscrowData(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<EscrowData>>::decrement_strong_count(ptr as _);
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerFindMyFriendsClientDefaultAnisetteProvider(
+    pub extern "C" fn frbgen_frbdart_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerFindMyFriendsClientDefaultAnisetteProvider(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<
@@ -34829,7 +35891,7 @@ mod io {
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerFindMyFriendsClientDefaultAnisetteProvider(
+    pub extern "C" fn frbgen_frbdart_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerFindMyFriendsClientDefaultAnisetteProvider(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<
@@ -34840,7 +35902,7 @@ mod io {
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerFindMyPhoneClientDefaultAnisetteProvider(
+    pub extern "C" fn frbgen_frbdart_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerFindMyPhoneClientDefaultAnisetteProvider(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<
@@ -34851,7 +35913,7 @@ mod io {
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerFindMyPhoneClientDefaultAnisetteProvider(
+    pub extern "C" fn frbgen_frbdart_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerFindMyPhoneClientDefaultAnisetteProvider(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<
@@ -34862,7 +35924,7 @@ mod io {
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGZipWrapperAttachmentMeta(
+    pub extern "C" fn frbgen_frbdart_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGZipWrapperAttachmentMeta(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<
@@ -34871,7 +35933,7 @@ mod io {
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGZipWrapperAttachmentMeta(
+    pub extern "C" fn frbgen_frbdart_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGZipWrapperAttachmentMeta(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<
@@ -34880,245 +35942,245 @@ mod io {
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGZipWrapperChatProto(
+    pub extern "C" fn frbgen_frbdart_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGZipWrapperChatProto(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<GZipWrapper < ChatProto >>>::increment_strong_count(ptr as _);
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGZipWrapperChatProto(
+    pub extern "C" fn frbgen_frbdart_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGZipWrapperChatProto(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<GZipWrapper < ChatProto >>>::decrement_strong_count(ptr as _);
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGZipWrapperMessageProto(
+    pub extern "C" fn frbgen_frbdart_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGZipWrapperMessageProto(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<GZipWrapper < MessageProto >>>::increment_strong_count(ptr as _);
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGZipWrapperMessageProto(
+    pub extern "C" fn frbgen_frbdart_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGZipWrapperMessageProto(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<GZipWrapper < MessageProto >>>::decrement_strong_count(ptr as _);
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGZipWrapperMessageProto2(
+    pub extern "C" fn frbgen_frbdart_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGZipWrapperMessageProto2(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<GZipWrapper < MessageProto2 >>>::increment_strong_count(ptr as _);
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGZipWrapperMessageProto2(
+    pub extern "C" fn frbgen_frbdart_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGZipWrapperMessageProto2(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<GZipWrapper < MessageProto2 >>>::decrement_strong_count(ptr as _);
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGZipWrapperMessageProto3(
+    pub extern "C" fn frbgen_frbdart_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGZipWrapperMessageProto3(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<GZipWrapper < MessageProto3 >>>::increment_strong_count(ptr as _);
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGZipWrapperMessageProto3(
+    pub extern "C" fn frbgen_frbdart_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGZipWrapperMessageProto3(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<GZipWrapper < MessageProto3 >>>::decrement_strong_count(ptr as _);
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGZipWrapperMessageProto4(
+    pub extern "C" fn frbgen_frbdart_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGZipWrapperMessageProto4(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<GZipWrapper < MessageProto4 >>>::increment_strong_count(ptr as _);
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGZipWrapperMessageProto4(
+    pub extern "C" fn frbgen_frbdart_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGZipWrapperMessageProto4(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<GZipWrapper < MessageProto4 >>>::decrement_strong_count(ptr as _);
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerIDSNGMIdentity(
+    pub extern "C" fn frbgen_frbdart_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerIDSNGMIdentity(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<IDSNGMIdentity>>::increment_strong_count(ptr as _);
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerIDSNGMIdentity(
+    pub extern "C" fn frbgen_frbdart_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerIDSNGMIdentity(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<IDSNGMIdentity>>::decrement_strong_count(ptr as _);
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerIDSUser(
+    pub extern "C" fn frbgen_frbdart_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerIDSUser(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<IDSUser>>::increment_strong_count(ptr as _);
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerIDSUser(
+    pub extern "C" fn frbgen_frbdart_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerIDSUser(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<IDSUser>>::decrement_strong_count(ptr as _);
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerJoinedOSConfig(
+    pub extern "C" fn frbgen_frbdart_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerJoinedOSConfig(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<JoinedOSConfig>>::increment_strong_count(ptr as _);
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerJoinedOSConfig(
+    pub extern "C" fn frbgen_frbdart_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerJoinedOSConfig(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<JoinedOSConfig>>::decrement_strong_count(ptr as _);
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerLocationReport(
+    pub extern "C" fn frbgen_frbdart_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerLocationReport(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<LocationReport>>::increment_strong_count(ptr as _);
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerLocationReport(
+    pub extern "C" fn frbgen_frbdart_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerLocationReport(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<LocationReport>>::decrement_strong_count(ptr as _);
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMessageFlags(
+    pub extern "C" fn frbgen_frbdart_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMessageFlags(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<MessageFlags>>::increment_strong_count(ptr as _);
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMessageFlags(
+    pub extern "C" fn frbgen_frbdart_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMessageFlags(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<MessageFlags>>::decrement_strong_count(ptr as _);
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerNSArrayLPIconMetadata(
+    pub extern "C" fn frbgen_frbdart_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerNSArrayLPIconMetadata(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<NSArray < LPIconMetadata >>>::increment_strong_count(ptr as _);
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerNSArrayLPIconMetadata(
+    pub extern "C" fn frbgen_frbdart_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerNSArrayLPIconMetadata(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<NSArray < LPIconMetadata >>>::decrement_strong_count(ptr as _);
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerNSArrayLPImageMetadata(
+    pub extern "C" fn frbgen_frbdart_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerNSArrayLPImageMetadata(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<NSArray < LPImageMetadata >>>::increment_strong_count(ptr as _);
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerNSArrayLPImageMetadata(
+    pub extern "C" fn frbgen_frbdart_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerNSArrayLPImageMetadata(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<NSArray < LPImageMetadata >>>::decrement_strong_count(ptr as _);
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPushError(
+    pub extern "C" fn frbgen_frbdart_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPushError(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<PushError>>::increment_strong_count(ptr as _);
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPushError(
+    pub extern "C" fn frbgen_frbdart_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPushError(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<PushError>>::decrement_strong_count(ptr as _);
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReceiverAPSMessage(
+    pub extern "C" fn frbgen_frbdart_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReceiverAPSMessage(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Receiver < APSMessage >>>::increment_strong_count(ptr as _);
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReceiverAPSMessage(
+    pub extern "C" fn frbgen_frbdart_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReceiverAPSMessage(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Receiver < APSMessage >>>::decrement_strong_count(ptr as _);
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSavedHardwareState(
+    pub extern "C" fn frbgen_frbdart_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSavedHardwareState(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SavedHardwareState>>::increment_strong_count(ptr as _);
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSavedHardwareState(
+    pub extern "C" fn frbgen_frbdart_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSavedHardwareState(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SavedHardwareState>>::decrement_strong_count(ptr as _);
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSender(
+    pub extern "C" fn frbgen_frbdart_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSender(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner< Sender < () >>>::increment_strong_count(ptr as _);
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSender(
+    pub extern "C" fn frbgen_frbdart_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSender(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner< Sender < () >>>::decrement_strong_count(ptr as _);
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerStCollapsedValue(
+    pub extern "C" fn frbgen_frbdart_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerStCollapsedValue(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<StCollapsedValue>>::increment_strong_count(ptr as _);
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerStCollapsedValue(
+    pub extern "C" fn frbgen_frbdart_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerStCollapsedValue(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<StCollapsedValue>>::decrement_strong_count(ptr as _);
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSyncManagerDefaultAnisetteProviderMyFilePackager(
+    pub extern "C" fn frbgen_frbdart_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSyncManagerDefaultAnisetteProviderMyFilePackager(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<
@@ -35129,7 +36191,7 @@ mod io {
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSyncManagerDefaultAnisetteProviderMyFilePackager(
+    pub extern "C" fn frbgen_frbdart_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSyncManagerDefaultAnisetteProviderMyFilePackager(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<
@@ -35140,42 +36202,42 @@ mod io {
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSystemTime(
+    pub extern "C" fn frbgen_frbdart_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSystemTime(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SystemTime>>::increment_strong_count(ptr as _);
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSystemTime(
+    pub extern "C" fn frbgen_frbdart_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSystemTime(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SystemTime>>::decrement_strong_count(ptr as _);
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerVerifyBody(
+    pub extern "C" fn frbgen_frbdart_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerVerifyBody(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<VerifyBody>>::increment_strong_count(ptr as _);
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerVerifyBody(
+    pub extern "C" fn frbgen_frbdart_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerVerifyBody(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<VerifyBody>>::decrement_strong_count(ptr as _);
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerViableBottle(
+    pub extern "C" fn frbgen_frbdart_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerViableBottle(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ViableBottle>>::increment_strong_count(ptr as _);
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_bluebubbles_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerViableBottle(
+    pub extern "C" fn frbgen_frbdart_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerViableBottle(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ViableBottle>>::decrement_strong_count(ptr as _);
@@ -35183,3 +36245,903 @@ mod io {
 }
 #[cfg(not(target_family = "wasm"))]
 pub use io::*;
+
+/// cbindgen:ignore
+#[cfg(target_family = "wasm")]
+mod web {
+    // This file is automatically generated, so please do not edit it.
+    // Generated by `flutter_rust_bridge`@ 2.3.0.
+
+    // Section: imports
+
+    use super::*;
+    use crate::api::api::*;
+    use crate::*;
+    use flutter_rust_bridge::for_generated::byteorder::{
+        NativeEndian, ReadBytesExt, WriteBytesExt,
+    };
+    use flutter_rust_bridge::for_generated::wasm_bindgen;
+    use flutter_rust_bridge::for_generated::wasm_bindgen::prelude::*;
+    use flutter_rust_bridge::for_generated::{transform_result_dco, Lifetimeable, Lockable};
+    use flutter_rust_bridge::{Handler, IntoIntoDart};
+
+    // Section: boilerplate
+
+    flutter_rust_bridge::frb_generated_boilerplate_web!();
+
+    #[wasm_bindgen]
+    pub fn rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAPSConnection(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<APSConnection>>::increment_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAPSConnection(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<APSConnection>>::decrement_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAPSState(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<APSState>>::increment_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAPSState(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<APSState>>::decrement_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAPSWatcher(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<APSWatcher>>::increment_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAPSWatcher(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<APSWatcher>>::decrement_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAVConfig(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<AVConfig>>::increment_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAVConfig(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<AVConfig>>::decrement_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcAVSession(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Arc < AVSession >>>::increment_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcAVSession(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Arc < AVSession >>>::decrement_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcAnisetteClientDefaultAnisetteProvider(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<
+            flutter_rust_bridge::for_generated::RustAutoOpaqueInner<
+                ArcAnisetteClient<DefaultAnisetteProvider>,
+            >,
+        >::increment_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcAnisetteClientDefaultAnisetteProvider(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<
+            flutter_rust_bridge::for_generated::RustAutoOpaqueInner<
+                ArcAnisetteClient<DefaultAnisetteProvider>,
+            >,
+        >::decrement_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcCloudKitClientDefaultAnisetteProvider(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<
+            flutter_rust_bridge::for_generated::RustAutoOpaqueInner<
+                Arc<CloudKitClient<DefaultAnisetteProvider>>,
+            >,
+        >::increment_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcCloudKitClientDefaultAnisetteProvider(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<
+            flutter_rust_bridge::for_generated::RustAutoOpaqueInner<
+                Arc<CloudKitClient<DefaultAnisetteProvider>>,
+            >,
+        >::decrement_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcCloudMessagesClientDefaultAnisetteProvider(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<
+            flutter_rust_bridge::for_generated::RustAutoOpaqueInner<
+                Arc<CloudMessagesClient<DefaultAnisetteProvider>>,
+            >,
+        >::increment_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcCloudMessagesClientDefaultAnisetteProvider(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<
+            flutter_rust_bridge::for_generated::RustAutoOpaqueInner<
+                Arc<CloudMessagesClient<DefaultAnisetteProvider>>,
+            >,
+        >::decrement_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcFTClient(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Arc < FTClient >>>::increment_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcFTClient(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Arc < FTClient >>>::decrement_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcFindMyClientDefaultAnisetteProvider(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<
+            flutter_rust_bridge::for_generated::RustAutoOpaqueInner<
+                Arc<FindMyClient<DefaultAnisetteProvider>>,
+            >,
+        >::increment_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcFindMyClientDefaultAnisetteProvider(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<
+            flutter_rust_bridge::for_generated::RustAutoOpaqueInner<
+                Arc<FindMyClient<DefaultAnisetteProvider>>,
+            >,
+        >::decrement_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcIMClient(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Arc < IMClient >>>::increment_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcIMClient(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Arc < IMClient >>>::decrement_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcIdmsAuthListener(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Arc < IdmsAuthListener >>>::increment_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcIdmsAuthListener(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Arc < IdmsAuthListener >>>::decrement_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcKeychainClientDefaultAnisetteProvider(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<
+            flutter_rust_bridge::for_generated::RustAutoOpaqueInner<
+                Arc<KeychainClient<DefaultAnisetteProvider>>,
+            >,
+        >::increment_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcKeychainClientDefaultAnisetteProvider(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<
+            flutter_rust_bridge::for_generated::RustAutoOpaqueInner<
+                Arc<KeychainClient<DefaultAnisetteProvider>>,
+            >,
+        >::decrement_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcMutexAppleAccountDefaultAnisetteProvider(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<
+            flutter_rust_bridge::for_generated::RustAutoOpaqueInner<
+                Arc<Mutex<AppleAccount<DefaultAnisetteProvider>>>,
+            >,
+        >::increment_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcMutexAppleAccountDefaultAnisetteProvider(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<
+            flutter_rust_bridge::for_generated::RustAutoOpaqueInner<
+                Arc<Mutex<AppleAccount<DefaultAnisetteProvider>>>,
+            >,
+        >::decrement_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcMutexOptionCircleClientSessionDefaultAnisetteProvider(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<
+            flutter_rust_bridge::for_generated::RustAutoOpaqueInner<
+                Arc<Mutex<Option<CircleClientSession<DefaultAnisetteProvider>>>>,
+            >,
+        >::increment_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcMutexOptionCircleClientSessionDefaultAnisetteProvider(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<
+            flutter_rust_bridge::for_generated::RustAutoOpaqueInner<
+                Arc<Mutex<Option<CircleClientSession<DefaultAnisetteProvider>>>>,
+            >,
+        >::decrement_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcMutexVecActiveCircleSession(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<
+            flutter_rust_bridge::for_generated::RustAutoOpaqueInner<
+                Arc<Mutex<Vec<ActiveCircleSession>>>,
+            >,
+        >::increment_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcMutexVecActiveCircleSession(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<
+            flutter_rust_bridge::for_generated::RustAutoOpaqueInner<
+                Arc<Mutex<Vec<ActiveCircleSession>>>,
+            >,
+        >::decrement_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcPasswordManagerDefaultAnisetteProvider(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<
+            flutter_rust_bridge::for_generated::RustAutoOpaqueInner<
+                Arc<PasswordManager<DefaultAnisetteProvider>>,
+            >,
+        >::increment_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcPasswordManagerDefaultAnisetteProvider(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<
+            flutter_rust_bridge::for_generated::RustAutoOpaqueInner<
+                Arc<PasswordManager<DefaultAnisetteProvider>>,
+            >,
+        >::decrement_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcProfilesClientDefaultAnisetteProvider(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<
+            flutter_rust_bridge::for_generated::RustAutoOpaqueInner<
+                Arc<ProfilesClient<DefaultAnisetteProvider>>,
+            >,
+        >::increment_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcProfilesClientDefaultAnisetteProvider(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<
+            flutter_rust_bridge::for_generated::RustAutoOpaqueInner<
+                Arc<ProfilesClient<DefaultAnisetteProvider>>,
+            >,
+        >::decrement_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcSenderPushMessage(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Arc < Sender < PushMessage > >>>::increment_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcSenderPushMessage(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Arc < Sender < PushMessage > >>>::decrement_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcSharedPushState(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Arc < SharedPushState >>>::increment_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcSharedPushState(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Arc < SharedPushState >>>::decrement_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcStatusKitClientDefaultAnisetteProvider(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<
+            flutter_rust_bridge::for_generated::RustAutoOpaqueInner<
+                Arc<StatusKitClient<DefaultAnisetteProvider>>,
+            >,
+        >::increment_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcStatusKitClientDefaultAnisetteProvider(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<
+            flutter_rust_bridge::for_generated::RustAutoOpaqueInner<
+                Arc<StatusKitClient<DefaultAnisetteProvider>>,
+            >,
+        >::decrement_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcTokenProviderDefaultAnisetteProvider(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<
+            flutter_rust_bridge::for_generated::RustAutoOpaqueInner<
+                Arc<TokenProvider<DefaultAnisetteProvider>>,
+            >,
+        >::increment_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcTokenProviderDefaultAnisetteProvider(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<
+            flutter_rust_bridge::for_generated::RustAutoOpaqueInner<
+                Arc<TokenProvider<DefaultAnisetteProvider>>,
+            >,
+        >::decrement_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAsset(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Asset>>::increment_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAsset(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Asset>>::decrement_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChannelInterestToken(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ChannelInterestToken>>::increment_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChannelInterestToken(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ChannelInterestToken>>::decrement_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCircleClientSessionDefaultAnisetteProvider(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<
+            flutter_rust_bridge::for_generated::RustAutoOpaqueInner<
+                CircleClientSession<DefaultAnisetteProvider>,
+            >,
+        >::increment_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCircleClientSessionDefaultAnisetteProvider(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<
+            flutter_rust_bridge::for_generated::RustAutoOpaqueInner<
+                CircleClientSession<DefaultAnisetteProvider>,
+            >,
+        >::decrement_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerConversationLink(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ConversationLink>>::increment_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerConversationLink(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ConversationLink>>::decrement_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerConversationParticipant(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ConversationParticipant>>::increment_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerConversationParticipant(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ConversationParticipant>>::decrement_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDate(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner< Date>>::increment_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDate(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner< Date>>::decrement_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerEscrowData(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<EscrowData>>::increment_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerEscrowData(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<EscrowData>>::decrement_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerFindMyFriendsClientDefaultAnisetteProvider(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<
+            flutter_rust_bridge::for_generated::RustAutoOpaqueInner<
+                FindMyFriendsClient<DefaultAnisetteProvider>,
+            >,
+        >::increment_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerFindMyFriendsClientDefaultAnisetteProvider(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<
+            flutter_rust_bridge::for_generated::RustAutoOpaqueInner<
+                FindMyFriendsClient<DefaultAnisetteProvider>,
+            >,
+        >::decrement_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerFindMyPhoneClientDefaultAnisetteProvider(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<
+            flutter_rust_bridge::for_generated::RustAutoOpaqueInner<
+                FindMyPhoneClient<DefaultAnisetteProvider>,
+            >,
+        >::increment_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerFindMyPhoneClientDefaultAnisetteProvider(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<
+            flutter_rust_bridge::for_generated::RustAutoOpaqueInner<
+                FindMyPhoneClient<DefaultAnisetteProvider>,
+            >,
+        >::decrement_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGZipWrapperAttachmentMeta(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<
+            flutter_rust_bridge::for_generated::RustAutoOpaqueInner<GZipWrapper<AttachmentMeta>>,
+        >::increment_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGZipWrapperAttachmentMeta(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<
+            flutter_rust_bridge::for_generated::RustAutoOpaqueInner<GZipWrapper<AttachmentMeta>>,
+        >::decrement_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGZipWrapperChatProto(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<GZipWrapper < ChatProto >>>::increment_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGZipWrapperChatProto(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<GZipWrapper < ChatProto >>>::decrement_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGZipWrapperMessageProto(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<GZipWrapper < MessageProto >>>::increment_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGZipWrapperMessageProto(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<GZipWrapper < MessageProto >>>::decrement_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGZipWrapperMessageProto2(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<GZipWrapper < MessageProto2 >>>::increment_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGZipWrapperMessageProto2(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<GZipWrapper < MessageProto2 >>>::decrement_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGZipWrapperMessageProto3(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<GZipWrapper < MessageProto3 >>>::increment_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGZipWrapperMessageProto3(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<GZipWrapper < MessageProto3 >>>::decrement_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGZipWrapperMessageProto4(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<GZipWrapper < MessageProto4 >>>::increment_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGZipWrapperMessageProto4(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<GZipWrapper < MessageProto4 >>>::decrement_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerIDSNGMIdentity(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<IDSNGMIdentity>>::increment_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerIDSNGMIdentity(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<IDSNGMIdentity>>::decrement_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerIDSUser(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<IDSUser>>::increment_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerIDSUser(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<IDSUser>>::decrement_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerJoinedOSConfig(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<JoinedOSConfig>>::increment_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerJoinedOSConfig(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<JoinedOSConfig>>::decrement_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerLocationReport(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<LocationReport>>::increment_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerLocationReport(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<LocationReport>>::decrement_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMessageFlags(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<MessageFlags>>::increment_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMessageFlags(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<MessageFlags>>::decrement_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerNSArrayLPIconMetadata(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<NSArray < LPIconMetadata >>>::increment_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerNSArrayLPIconMetadata(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<NSArray < LPIconMetadata >>>::decrement_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerNSArrayLPImageMetadata(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<NSArray < LPImageMetadata >>>::increment_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerNSArrayLPImageMetadata(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<NSArray < LPImageMetadata >>>::decrement_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPushError(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<PushError>>::increment_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPushError(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<PushError>>::decrement_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReceiverAPSMessage(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Receiver < APSMessage >>>::increment_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReceiverAPSMessage(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Receiver < APSMessage >>>::decrement_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSavedHardwareState(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SavedHardwareState>>::increment_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSavedHardwareState(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SavedHardwareState>>::decrement_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSender(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner< Sender < () >>>::increment_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSender(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner< Sender < () >>>::decrement_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerStCollapsedValue(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<StCollapsedValue>>::increment_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerStCollapsedValue(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<StCollapsedValue>>::decrement_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSyncManagerDefaultAnisetteProviderMyFilePackager(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<
+            flutter_rust_bridge::for_generated::RustAutoOpaqueInner<
+                SyncManager<DefaultAnisetteProvider, MyFilePackager>,
+            >,
+        >::increment_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSyncManagerDefaultAnisetteProviderMyFilePackager(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<
+            flutter_rust_bridge::for_generated::RustAutoOpaqueInner<
+                SyncManager<DefaultAnisetteProvider, MyFilePackager>,
+            >,
+        >::decrement_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSystemTime(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SystemTime>>::increment_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSystemTime(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SystemTime>>::decrement_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerVerifyBody(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<VerifyBody>>::increment_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerVerifyBody(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<VerifyBody>>::decrement_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerViableBottle(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ViableBottle>>::increment_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerViableBottle(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ViableBottle>>::decrement_strong_count(ptr as _);
+    }
+}
+#[cfg(target_family = "wasm")]
+pub use web::*;

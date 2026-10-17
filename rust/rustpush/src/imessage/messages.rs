@@ -6,6 +6,7 @@ use log::{debug, error, info, warn};
 use openssl::{sha::{self, sha256}, symm::{Cipher, Crypter}};
 use plist::{Data, Dictionary, Value};
 use regex::Regex;
+use typed_arena::Arena;
 use uuid::Uuid;
 use rand::Rng;
 use xml::{reader, writer::XmlEvent, EmitterConfig, EventReader, EventWriter};
@@ -27,7 +28,7 @@ const ZERO_NONCE: [u8; 16] = [
 ];
 // conversation data, used to uniquely identify a conversation from a message
 #[repr(C)]
-#[derive(Clone)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct ConversationData {
     pub participants: Vec<String>,
     pub cv_name: Option<String>,
@@ -41,7 +42,7 @@ impl ConversationData {
     }
 }
 
-#[derive(Clone, Copy, Default)]
+#[derive(Clone, Copy, Default, Serialize, Deserialize)]
 pub struct TextFlags {
     pub bold: bool,
     pub italic: bool,
@@ -91,7 +92,7 @@ impl TextFlags {
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Serialize, Deserialize)]
 pub enum TextEffect {
     Big = 5,
     Small = 11,
@@ -121,7 +122,7 @@ impl TryFrom<u32> for TextEffect {
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Serialize, Deserialize)]
 pub enum TextFormat {
     Flags(TextFlags),
     Effect(TextEffect),
@@ -158,7 +159,7 @@ impl Default for TextFormat {
 }
 
 #[repr(C)]
-#[derive(Clone)]
+#[derive(Clone, Serialize, Deserialize)]
 pub enum MessagePart {
     Text(String, TextFormat),
     Attachment(Attachment),
@@ -167,7 +168,7 @@ pub enum MessagePart {
 }
 
 #[repr(C)]
-#[derive(Clone)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct IndexedMessagePart {
     pub part: MessagePart,
     pub idx: Option<usize>,
@@ -175,7 +176,7 @@ pub struct IndexedMessagePart {
 }
 
 #[repr(C)]
-#[derive(Clone)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct MessageParts(pub Vec<IndexedMessagePart>);
 
 /// Whether a FILE part is a Genmoji, and how its sender described it.
@@ -265,7 +266,13 @@ impl MessageParts {
         writer.write(XmlEvent::start_element("body")).unwrap();
         let mut inline_attachment_num = 0;
         let mut my_part_idx = 0;
+        let mut building_inline = false;
         for part in self.0.iter() {
+            if building_inline && matches!(part.part, MessagePart::Attachment(_)) {
+                // kick us out of inline mode
+                my_part_idx += 1;
+                building_inline = false;
+            }
             let part_idx = part.idx.unwrap_or(my_part_idx).to_string();
             match &part.part {
                 MessagePart::Attachment(attachment) => {
@@ -275,10 +282,9 @@ impl MessageParts {
                         .attr("name", &attachment.name)
                         .attr("width", "0")
                         .attr("height", "0")
-                        .attr("datasize", &filesize)
+                        .attr("datasize", &filesize) // i think this is wrong for attachments with several variants (MMCS vec), but it is what it is.
                         .attr("mime-type", &attachment.mime)
                         .attr("uti-type", &attachment.uti_type)
-                        .attr("file-size", &filesize)
                         .attr("message-part", &part_idx);
                     let ext = part.ext.as_ref().map(|e| e.to_dict()).unwrap_or_else( || HashMap::new());
                     for (key, val) in &ext {
@@ -309,26 +315,33 @@ impl MessageParts {
                             };
                             writer.write(
                                 element
+                                    .attr("file-size", &data.len().to_string())
                                     .attr("inline-attachment", num)
                             ).unwrap();
 
                             inline_attachment_num += 1;
                         }
                         AttachmentType::MMCS(mmcs) => {
-                            writer.write(
-                                element
-                                    .attr("mmcs-signature-hex", &encode_hex(&mmcs.signature))
-                                    .attr("mmcs-url", &mmcs.url)
-                                    .attr("mmcs-owner", &mmcs.object)
-                                    .attr("decryption-key", &encode_hex(&[
+                            let strings = Arena::<String>::new();
+                            for (idx, mmcs) in mmcs.iter().enumerate() {
+                                let suffix = if idx == 0 { "".to_owned() } else { format!("-{idx}") };
+                                element = element
+                                    .attr(strings.alloc(format!("mmcs-signature-hex{suffix}")).as_str(), strings.alloc(encode_hex(&mmcs.signature)))
+                                    .attr(strings.alloc(format!("mmcs-url{suffix}")).as_str(), &mmcs.url)
+                                    .attr(strings.alloc(format!("mmcs-owner{suffix}")).as_str(), &mmcs.object)
+                                    .attr(strings.alloc(format!("decryption-key{suffix}")).as_str(), strings.alloc(encode_hex(&[
                                         vec![0x00],
                                         mmcs.key.clone()
-                                    ].concat()))
-                            ).unwrap();
+                                    ].concat())))
+                                    .attr(strings.alloc(format!("file-size{suffix}")).as_str(), strings.alloc(mmcs.size.to_string()));
+                            }
+
+                            writer.write(element).unwrap();
                         }
                     }
                 },
                 MessagePart::Text(text, format) => {
+                    building_inline = true;
                     let mut element = XmlEvent::start_element("span").attr("message-part", &part_idx);
                     let ext = part.ext.as_ref().map(|e| e.to_dict()).unwrap_or_else( || HashMap::new());
                     for (key, val) in &ext {
@@ -347,6 +360,7 @@ impl MessageParts {
                     format.close_flags(&mut writer);
                 },
                 MessagePart::Mention(uri, text) => {
+                    building_inline = true;
                     let mut element = XmlEvent::start_element("span").attr("message-part", &part_idx);
                     let ext = part.ext.as_ref().map(|e| e.to_dict()).unwrap_or_else( || HashMap::new());
                     for (key, val) in &ext {
@@ -358,6 +372,7 @@ impl MessageParts {
                     writer.write(XmlEvent::end_element()).unwrap();
                 },
                 MessagePart::Object(breadcrumb) => {
+                    building_inline = true;
                     let element = XmlEvent::start_element("object").attr("breadcrumbText", &breadcrumb)
                         .attr("breadcrumbOptions", "0");
                     writer.write(element).unwrap();
@@ -451,8 +466,8 @@ impl MessageParts {
                 let corresponding = if part.starts_with("(null)") {
                     raw.content.iter().find(|i| i.content_id.is_none()).unwrap()
                 } else {
-                    let filename = part.split("(").next().unwrap();
-                    raw.content.iter().find(|i| i.content_location.as_ref().map(|i| i.as_str()) == Some(filename)).unwrap()
+                    let filename = part.split("(").next().unwrap().to_lowercase();
+                    raw.content.iter().find(|i| i.content_location.as_ref().map(|i| i.to_lowercase()).as_ref() == Some(&filename)).unwrap()
                 };
                 parse_data(idx, corresponding)
             }).collect())
@@ -515,15 +530,18 @@ impl MessageParts {
                                             continue
                                         })
                                     } else {
-                                        let sig = decode_hex(&get_attr("mmcs-signature-hex", None)).unwrap();
-                                        let key = decode_hex(&get_attr("decryption-key", None)).unwrap();
-                                        AttachmentType::MMCS(MMCSFile {
-                                            signature: sig.clone(), // chop off first byte because it's not actually the signature
-                                            object: get_attr("mmcs-owner", None),
-                                            url: get_attr("mmcs-url", None),
-                                            key: key[1..].to_vec(),
-                                            size: get_attr("file-size", None).parse().unwrap()
-                                        })
+                                        AttachmentType::MMCS((0..).map_while(|idx| {
+                                            let suffix = if idx == 0 { "".to_owned() } else { format!("-{idx}") };
+                                            let url = get_attr(&format!("mmcs-url{}", suffix), Some("none"));
+                                            if &url == "none" { return None }
+                                            Some(MMCSFile {
+                                                signature: decode_hex(&get_attr(&format!("mmcs-signature-hex{suffix}"), None)).unwrap(), // chop off first byte because it's not actually the signature
+                                                object: get_attr(&format!("mmcs-owner{suffix}"), None),
+                                                url,
+                                                key: decode_hex(&get_attr(&format!("decryption-key{suffix}"), None)).unwrap()[1..].to_vec(),
+                                                size: get_attr(&format!("file-size{suffix}"), None).parse().unwrap()
+                                            })
+                                        }).collect())
                                     },
                                     part: attributes.iter().find(|attr| attr.name.to_string() == "message-part").map(|item| item.value.parse().unwrap()).unwrap_or(0),
                                     uti_type: get_attr("uti-type", Some("public.data")),
@@ -670,13 +688,13 @@ impl MessageParts {
 }
 
 #[repr(C)]
-#[derive(PartialEq, Clone)]
+#[derive(PartialEq, Clone, Serialize, Deserialize)]
 pub enum MessageType {
     IMessage,
     SMS {
         is_phone: bool,
         using_number: String, // prefixed with tel:
-        from_handle: Option<String>,
+        from_handle: Option<String>, // also prefixed with tel:
     }
 }
 
@@ -706,7 +724,7 @@ impl ExtensionApp {
         })
     }
 
-    pub fn to_raw(&self) -> Result<(Vec<u8>, Option<Vec<u8>>), PushError> {
+    pub fn to_raw(&self, is_backup: bool) -> Result<(Vec<u8>, Option<Vec<u8>>), PushError> {
         let arr = NSArray {
             objects: vec![NSDictionary {
                 class: NSDictionaryClass::NSDictionary,
@@ -729,7 +747,7 @@ impl ExtensionApp {
         let collapse = gzip(&plist_to_bin(&KeyedArchive::archive_item(value)?)?)?;
         let mut balloon = None;
         if let Some(balloon_obj) = &self.balloon {
-            balloon = Some(balloon_obj.to_raw(self)?);
+            balloon = Some(balloon_obj.to_raw(self, is_backup)?);
         }
 
         Ok((collapse, balloon))
@@ -784,19 +802,16 @@ impl Balloon {
             layout: unpacked.layout,
             ld_text: unpacked.ldtext,
             is_live: unpacked.live_layout_info.is_some(),
-            icon: unpacked.app_icon.and_then(|a| ungzip(&a).ok()),
+            icon: unpacked.app_icon.map(|a| a.decompress().into_bytes()),
         })
     }
 
-    fn to_raw(&self, app: &ExtensionApp) -> Result<Vec<u8>, PushError> {
+    fn to_raw(&self, app: &ExtensionApp, is_backup: bool) -> Result<Vec<u8>, PushError> {
         let raw = NSDictionary {
             item: RawBalloonData {
                 ldtext: self.ld_text.clone(),
                 layout: self.layout.clone(),
-                app_icon: self.icon.as_ref().map(|icon| NSData {
-                    data: gzip(&icon).unwrap().into(),
-                    class: NSDataClass::NSMutableData
-                }),
+                app_icon: self.icon.as_ref().map(|icon| BalloonRawData::new(icon.clone(), is_backup).compress()),
                 app_name: app.name.clone(),
                 // The session is an NSUUID on the wire. A caller that hands us something else
                 // has a bug, but it is not one worth taking the whole process down for.
@@ -805,10 +820,7 @@ impl Balloon {
                     .transpose()
                     .map_err(|_| PushError::BadMsg)?,
                 live_layout_info: if self.is_live {
-                    Some(NSData {
-                        data: include_bytes!("livelayout.bplist").to_vec().into(),
-                        class: NSDataClass::NSMutableData
-                    })
+                    Some(BalloonRawData::new(include_bytes!("livelayout.bplist").to_vec(), is_backup))
                 } else { None },
                 url: NSURL {
                     base: "$null".to_string(),
@@ -823,7 +835,7 @@ impl Balloon {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct ScheduleMode {
     pub ms: u64,
     pub schedule: bool,
@@ -831,7 +843,7 @@ pub struct ScheduleMode {
 
 // a "normal" imessage, containing multiple parts and text
 #[repr(C)]
-#[derive(Clone)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct NormalMessage {
     pub parts: MessageParts,
     pub effect: Option<String>,
@@ -847,7 +859,7 @@ pub struct NormalMessage {
 }
 
 #[repr(C)]
-#[derive(Clone)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct LinkMeta {
     pub data: LPLinkMetadata,
     pub attachments: Vec<Vec<u8>>,
@@ -876,20 +888,20 @@ impl NormalMessage {
 }
 
 #[repr(C)]
-#[derive(Clone)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct RenameMessage {
     pub new_name: String
 }
 
 #[repr(C)]
-#[derive(Clone)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct ChangeParticipantMessage {
     pub new_participants: Vec<String>,
     pub group_version: u64
 }
 
 #[repr(C)]
-#[derive(Clone)]
+#[derive(Clone, Serialize, Deserialize)]
 pub enum Reaction {
     Heart,
     Like,
@@ -1013,7 +1025,7 @@ impl PartExtension {
 }
 
 #[repr(C)]
-#[derive(Clone)]
+#[derive(Clone, Serialize, Deserialize)]
 pub enum ReactMessageType {
     React {
         reaction: Reaction,
@@ -1126,7 +1138,7 @@ impl ReactMessageType {
 }
 
 #[repr(C)]
-#[derive(Clone)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct ReactMessage {
     pub to_uuid: String,
     pub to_part: Option<u64>,
@@ -1136,7 +1148,7 @@ pub struct ReactMessage {
 }
 
 #[repr(C)]
-#[derive(Clone)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct ErrorMessage {
     pub for_uuid: String,
     pub status: u64,
@@ -1163,14 +1175,14 @@ impl ReactMessage {
 }
 
 #[repr(C)]
-#[derive(Clone)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct UnsendMessage {
     pub tuuid: String,
     pub edit_part: u64,
 }
 
 #[repr(C)]
-#[derive(Clone)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct EditMessage {
     pub tuuid: String,
     pub edit_part: u64,
@@ -1299,7 +1311,7 @@ struct MMCSUploadResponse {
 }
 
 #[repr(C)]
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct MMCSFile {
     #[serde(serialize_with = "bin_serialize", deserialize_with = "bin_deserialize")]
     pub signature: Vec<u8>,
@@ -1535,7 +1547,35 @@ impl MMCSFile {
 #[derive(Clone, Serialize, Deserialize)]
 pub enum AttachmentType {
     Inline(#[serde(serialize_with = "bin_serialize", deserialize_with = "bin_deserialize")] Vec<u8>),
-    MMCS(MMCSFile)
+    MMCS(#[serde(deserialize_with = "mmcs_files_deserialize")] Vec<MMCSFile>)
+}
+
+// Before attachments could span several MMCS files this variant held exactly one, and attachments
+// serialized then are still stored by clients. Read either shape.
+fn mmcs_files_deserialize<'de, D>(d: D) -> Result<Vec<MMCSFile>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    #[derive(Deserialize)]
+    #[serde(untagged)]
+    enum OneOrMany {
+        Many(Vec<MMCSFile>),
+        One(MMCSFile),
+    }
+    Ok(match OneOrMany::deserialize(d)? {
+        OneOrMany::Many(files) => files,
+        OneOrMany::One(file) => vec![file],
+    })
+}
+
+fn normalize_sms_handle(handle: &str) -> String {
+    if handle.starts_with('+') {
+        format!("tel:{handle}")
+    } else if handle.len() >= 8 && handle.bytes().all(|b| b.is_ascii_digit()) {
+        format!("tel:+{handle}")
+    } else {
+        format!("tel:{handle}") // short code or alphanumeric sender -- leave alone
+    }
 }
 
 #[repr(C)]
@@ -1564,7 +1604,7 @@ impl Attachment {
     pub async fn new_mmcs(apns: &APSConnectionResource, prepared: &AttachmentPreparedPut, reader: impl Read + Send + Sync, mime: &str, uti: &str, name: &str, progress: impl FnMut(usize, usize) + Send + Sync) -> Result<Attachment, PushError> {
         let mmcs = MMCSFile::new(apns, prepared, reader, progress).await?;
         Ok(Attachment {
-            a_type: AttachmentType::MMCS(mmcs),
+            a_type: AttachmentType::MMCS(vec![mmcs]),
             part: 0,
             uti_type: uti.to_string(),
             mime: mime.to_string(),
@@ -1577,7 +1617,7 @@ impl Attachment {
     pub fn get_size(&self) -> usize {
         match &self.a_type {
             AttachmentType::Inline(data) => data.len(),
-            AttachmentType::MMCS(mmcs) => mmcs.size
+            AttachmentType::MMCS(mmcs) => mmcs.iter().fold(0, |a, i| a + i.size),
         }
     }
 
@@ -1588,7 +1628,9 @@ impl Attachment {
                 Ok(())
             },
             AttachmentType::MMCS(mmcs) => {
-                mmcs.get_attachment(apns, writer, progress).await
+                // biggest file is the main one
+                let main = mmcs.iter().max_by_key(|m| m.size).unwrap();
+                main.get_attachment(apns, writer, progress).await
             }
         }
     }
@@ -1596,39 +1638,39 @@ impl Attachment {
 
 // file should be 570x570 png
 #[repr(C)]
-#[derive(Clone)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct IconChangeMessage {
     pub file: Option<MMCSFile>,
     pub group_version: u64,
 }
 
 #[repr(C)]
-#[derive(Clone)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct UpdateExtensionMessage {
     pub for_uuid: String,
     pub ext: PartExtension,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Serialize, Deserialize)]
 pub enum DeleteTarget {
     Chat(OperatedChat),
     Messages(Vec<String>)
 }
 
-#[derive(Clone)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct MoveToRecycleBinMessage {
     pub target: DeleteTarget,
     pub recoverable_delete_date: u64,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct PermanentDeleteMessage {
     pub target: DeleteTarget,
     pub is_scheduled: bool,
 }
 
 
-#[derive(Clone)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct UpdateProfileMessage {
     pub profile: Option<ShareProfileMessage>,
     pub share_contacts: bool,
@@ -1739,14 +1781,14 @@ impl SetTranscriptBackgroundMessage {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct TypingApp {
     pub bundle_id: String,
     pub icon: Vec<u8>,
 }
 
 #[repr(C)]
-#[derive(Clone)]
+#[derive(Clone, Serialize, Deserialize)]
 pub enum Message {
     Message(NormalMessage),
     RenameMessage(RenameMessage),
@@ -1762,7 +1804,7 @@ pub enum Message {
     MessageReadOnDevice,
     SmsConfirmSent(bool /* status */),
     MarkUnread, // send for last message from other participant
-    PeerCacheInvalidate,
+    PeerCacheInvalidate, // also should re-emit profile photo, if any.
     UpdateExtension(UpdateExtensionMessage),
     Error(ErrorMessage),
     MoveToRecycleBin(MoveToRecycleBinMessage),
@@ -1777,6 +1819,7 @@ pub enum Message {
     /// An audio message was listened to (command 105). Bodyless, like [Message::Read]: the
     /// envelope's `U` names the message that was played, and the envelope's timestamp is when.
     Played,
+    RecoverProfile,
 }
 
 
@@ -1832,6 +1875,7 @@ impl Message {
             Self::ShareProfile(_) => 131,
             Self::NotifyAnyways => 113,
             Self::SetTranscriptBackground(_) => 138,
+            Self::RecoverProfile => 180,
         }
     }
 
@@ -1874,7 +1918,7 @@ impl Message {
                     ("c", Value::Integer(70000.into()))
                 ]))),
             ]),
-            Message::UpdateProfileSharing(_) => Dictionary::from_iter([
+            Message::UpdateProfileSharing(_) | Message::RecoverProfile => Dictionary::from_iter([
                 ("gC", Value::Integer(70000.into())),
                 ("pID", Value::Dictionary(Dictionary::new())),
             ]),
@@ -1906,6 +1950,7 @@ impl Message {
             Self::UpdateProfileSharing(_) => Some(true),
             Self::NotifyAnyways => Some(true),
             Self::SetTranscriptBackground(_) => Some(true),
+            Self::RecoverProfile => Some(true),
             _ => None
         }
     }
@@ -1994,6 +2039,9 @@ impl fmt::Display for Message {
             },
             Message::SetTranscriptBackground(_) => {
                 write!(f, "Changed the transcript background")
+            },
+            Message::RecoverProfile => {
+                write!(f, "Recovered a profile")
             }
         }
     }
@@ -2062,7 +2110,7 @@ impl From<MMCSFile> for RawMMCSBalloon {
 
 // a message that can be sent to other iMessage users
 #[repr(C)]
-#[derive(Clone)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct MessageInst {
     pub id: String,
     pub sender: Option<String>,
@@ -2250,6 +2298,15 @@ impl MessageInst {
                 };
                 plist_to_bin(&raw).unwrap()
             },
+            Message::RecoverProfile => {
+                let raw = RawProfileRecoveryMessage {
+                    profile: RawProfileRecovery {
+                        recover: true,
+                    },
+                    unk1: 70000,
+                };
+                plist_to_bin(&raw).unwrap()
+            },
             Message::UpdateProfile(update) => {
                 let raw = RawProfileUpdateMessage {
                     profile: RawProfileUpdate {
@@ -2329,7 +2386,7 @@ impl MessageInst {
                 let mut balloon_part: Option<Vec<u8>> = None;
                 let mut app_info: Option<Data> = None;
                 if let ReactMessageType::Extension { spec: app_obj, body: _, .. } = &react.reaction {
-                    let (app, balloon) = app_obj.to_raw()?;
+                    let (app, balloon) = app_obj.to_raw(false)?;
                     app_info = if balloon.is_none() { Some(app.into()) } else { None };
                     balloon_part = balloon;
                     if !react.reaction.is_sticker() {
@@ -2339,7 +2396,7 @@ impl MessageInst {
                 }
                 // A sticker names the app it came from the same way a non-balloon extension does.
                 if let ReactMessageType::React { reaction: Reaction::Sticker { spec: Some(app_obj), .. }, .. } = &react.reaction {
-                    app_info = Some(app_obj.to_raw()?.0.into());
+                    app_info = Some(app_obj.to_raw(false)?.0.into());
                 }
 
                 let (balloon_part, balloon_part_mmcs) = if let Some(balloon_part) = balloon_part {
@@ -2394,7 +2451,7 @@ impl MessageInst {
                         let mut balloon_part: Option<Vec<u8>> = None;
                         let mut app_info: Option<Data> = None;
                         if let Some(app_obj) = &normal.app {
-                            let (app, balloon) = app_obj.to_raw()?;
+                            let (app, balloon) = app_obj.to_raw(false)?;
                             app_info = Some(app.into());
                             balloon_part = balloon;
                             balloon_id = Some(app_obj.bundle_id.clone());
@@ -2812,6 +2869,11 @@ impl MessageInst {
         if let Ok(loaded) = plist::from_value::<RawProfileSharingUpdateMessage>(&value) {
             return wrapper.to_message(None, Message::UpdateProfileSharing(loaded.profile))
         }
+        if let Ok(loaded) = plist::from_value::<RawProfileRecoveryMessage>(&value) {
+            if loaded.profile.recover {
+                return wrapper.to_message(None, Message::RecoverProfile)
+            }
+        }
         if let Ok(loaded) = plist::from_value::<RawRenameMessage>(&value) {
             return wrapper.to_message(Some(ConversationData {
                 participants: add_prefix(&loaded.participants),
@@ -2918,17 +2980,18 @@ impl MessageInst {
         if let Ok(loaded) = plist::from_value::<RawSmsIncomingMessage>(&value) {
             let system_recv: SystemTime = loaded.recieved_date.clone().into();
             let parts = MessageParts::parse_sms(&loaded);
+            let normalized_sender = normalize_sms_handle(&loaded.sender);
             let mut msg = wrapper.to_message(
                 Some(ConversationData {
                     participants: if loaded.participants.len() > 0 {
-                        let mut participants = loaded.participants.clone();
+                        let mut participants: Vec<String> = loaded.participants.iter().map(|p| normalize_sms_handle(p)).collect();
                         // duplicates cause chat matching in dart to fail (it is duplicate for RCS)
-                        if !participants.contains(&loaded.sender) {
-                            participants.push(loaded.sender.clone());
+                        if !participants.contains(&normalized_sender) {
+                            participants.push(normalized_sender.clone());
                         }
-                        participants.iter().map(|p| format!("tel:{p}")).collect()
+                        participants
                     } else {
-                        vec![format!("tel:{}", loaded.sender), format!("tel:{}", loaded.recieved_number)]
+                        vec![normalized_sender.clone(), normalize_sms_handle(&loaded.recieved_number)]
                     },
                     cv_name: None, // ha sms sux, can't believe these losers don't have an iPhone
                     sender_guid: None,
@@ -2941,8 +3004,8 @@ impl MessageInst {
                     reply_part: None, // losers
                     service: MessageType::SMS { // shame
                         is_phone: false, // if we are recieving a incoming message (over apns), we must not be the phone
-                        using_number: format!("tel:{}", loaded.recieved_number),
-                        from_handle: Some(loaded.sender.clone()),
+                        using_number: normalize_sms_handle(&loaded.recieved_number),
+                        from_handle: Some(normalized_sender),
                     },
                     subject: None,
                     app: None,

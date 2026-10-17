@@ -7,6 +7,7 @@ pub use rustpush::{TypingApp, ApsData, ApsAlert, AkData, IdmsCircleMessage, Idms
 pub use rustpush::{LoginState, AppleAccount, VerifyBody, TrustedPhoneNumber};
 pub use rustpush::findmy::{Follow, Address, Location, FoundDevice};
 pub use rustpush::facetime::{FTSession, FTMode, FTParticipant, FTMember, LetMeInRequest, FTMessage};
+pub use rustpush::avconference::{AVSession, AVConfig};
 pub use rustpush::facetime::facetimep::{ConversationParticipant, ConversationLink};
 pub use rustpush::statuskit::{StatusKitPersonalConfig, StatusKitMessage};
 pub use rustpush::posterkit::{TranscriptDynamicUserData, WatchBackground, SimplifiedTranscriptPoster, SimplifiedIncomingCallPoster, PosterRole, UIColor, PRPosterContentMaterialStyle, PosterAsset, PRPosterSystemTimeFontConfiguration, PRPosterColor, PRPosterTitleStyleConfiguration, WallpaperMetadata, PosterColor, PhotoPosterContentsFrame, PhotoPosterContentsSize, PhotoPosterLayer, PhotoPosterLayout, PhotoPosterProperties, PhotoPosterContents, MonogramData, MemojiData, PosterType, SimplifiedPoster};
@@ -442,7 +443,7 @@ pub enum DartSyncStatus {
     Syncing, // deleting remote/local
 }
 
-pub use rustpush::cloud_messages::{CloudChat, CloudMessageSummary, CloudProp, CloudParticipant, GZipWrapper, MMCSAttachmentMeta, AttachmentMeta, NumOrString, AttachmentMetaExtra, CloudProp001, CloudMessage, CloudAttachment, MessageFlags, cloudmessagesp::{ChatProto, MessageProto, MessageProto2, MessageProto3, MessageProto4}};
+pub use rustpush::cloud_messages::{CloudChat, CloudMessageSummary, CloudProp, CloudParticipant, GZipWrapper, MMCSAttachmentMeta, AttachmentMeta, NumOrString, AttachmentMetaExtra, CloudProp001, CloudMessage, CloudMessageType, CloudAttachment, MessageFlags, cloudmessagesp::{ChatProto, MessageProto, MessageProto2, MessageProto3, MessageProto4, GroupTitleChange, LocationShareStatusChange, MessageAction, ParticipantChange, GroupAction, ExtraSummaryInfo}};
 pub use rustpush::cloudkit_proto::Asset;
 pub use plist::Date;
 #[frb(mirror(CloudProp))]
@@ -486,7 +487,9 @@ pub struct DartCloudProp001 {
 
 #[frb(mirror(ChatProto))]
 pub struct DartChatProto {
-    pub unk1: Option<u32>,
+    pub version: Option<u32>,
+    /// always 0
+    pub is_recovered: Option<u32>,
 }
 
 pub use rustpush::{NSAttributedString, NSDictionaryTypedCoder, StCollapsedValue, NSNumber, NSString};
@@ -733,19 +736,91 @@ pub struct DartMessageSummaryInfo {
 #[frb(non_opaque, mirror(CloudMessage))]
 pub struct DartCloudMessage {
     pub utm: Option<SystemTime>, // option for default
-    pub r#type: i64,
     pub error: i64,
     pub chat_id: String,
     pub sender: String,
     pub time: i64, // ns since apple epoch
-    pub msg_proto_2: Option<GZipWrapper<MessageProto2>>, // always empty afaict??
     pub destination_caller_id: String,
-    pub msg_proto: GZipWrapper<MessageProto>,
     pub flags: MessageFlags, // unk
     pub guid: String,
-    pub msg_proto_3: Option<GZipWrapper<MessageProto3>>,
     pub service: String,
-    pub msg_proto_4: Option<GZipWrapper<MessageProto4>>,
+    pub message: CloudMessageType,
+}
+
+#[frb(non_opaque, mirror(CloudMessageType))]
+pub enum DartCloudMessageType {
+    Message {
+        reaction: bool,
+        proto: MessageProto,
+        proto2: Option<MessageProto2>,
+        proto3: Option<MessageProto3>,
+        proto4: Option<MessageProto4>,
+    },
+    GroupTitleChange {
+        proto: GroupTitleChange,
+    },
+    LocationShareStatusChange {
+        proto: LocationShareStatusChange,
+    },
+    MessageAction {
+        proto: MessageAction,
+    },
+    ParticipantChange {
+        proto: ParticipantChange,
+        proto2: Option<ExtraSummaryInfo>,
+    },
+    GroupAction {
+        proto: GroupAction,
+    },
+    Unknown,
+}
+
+#[frb(non_opaque, mirror(GroupTitleChange))]
+pub struct DartGroupTitleChange {
+    pub version: Option<u32>,
+    pub group_title: Option<String>,
+    pub other_handle: Option<String>,
+    pub padding: Option<Vec<u8>>,
+}
+
+#[frb(non_opaque, mirror(LocationShareStatusChange))]
+pub struct DartLocationShareStatusChange {
+    pub version: Option<u32>,
+    pub share_status: Option<i64>,
+    pub share_direction: Option<i64>,
+    pub other_handle: Option<String>,
+    pub padding: Option<Vec<u8>>,
+}
+
+#[frb(non_opaque, mirror(MessageAction))]
+pub struct DartMessageAction {
+    pub version: Option<u32>,
+    pub message_action_type: Option<i64>,
+    pub other_handle: Option<String>,
+    pub original_message_guid: Option<String>,
+    pub padding: Option<Vec<u8>>,
+}
+
+#[frb(non_opaque, mirror(ParticipantChange))]
+pub struct DartParticipantChange {
+    pub version: Option<u32>,
+    pub participant_change_type: Option<i64>,
+    pub other_handle: Option<String>,
+    pub padding: Option<Vec<u8>>,
+}
+
+#[frb(non_opaque, mirror(GroupAction))]
+pub struct DartGroupAction {
+    pub version: Option<u32>,
+    pub group_action_type: Option<i64>,
+    pub other_handle: Option<String>,
+    pub padding: Option<Vec<u8>>,
+}
+
+#[frb(non_opaque, mirror(ExtraSummaryInfo))]
+pub struct DartExtraSummaryInfo {
+    pub message_summary_info: Option<Vec<u8>>,
+    pub padding: Option<Vec<u8>>,
 }
 
 #[frb(sync)]
@@ -791,7 +866,7 @@ pub fn encode_messageproto4(messageproto4: &MessageProto4) -> GZipWrapper<Messag
 #[frb(non_opaque, mirror(MessageProto), type_64bit_int)]
 pub struct DartMessageProto {
     /// always 1, is finished or ck sync state
-    pub unk1: u32,
+    pub version: u32,
     pub subject: Option<String>,
     pub text: Option<String>,
     pub attributed_body: Option<Vec<u8>>,
@@ -800,10 +875,10 @@ pub struct DartMessageProto {
     pub message_summary_info: Option<Vec<u8>>,
     pub effect: Option<String>,
     pub date_read: Option<u64>,
-    pub unk10: Option<u32>,
-    pub unk11: Option<u32>,
+    pub time_played: Option<u32>,
+    pub time_expressive_sent_played: Option<u32>,
     pub date_delivered: Option<u64>,
-    pub unk14: Option<u32>,
+    pub expire_state: Option<u32>,
     pub associated_message_type: Option<u32>,
     pub associated_message_guid: Option<String>,
     pub associated_message_range_location: Option<u32>,
@@ -825,10 +900,7 @@ pub enum DartNumOrString {
 #[frb(non_opaque, mirror(MMCSAttachmentMeta))]
 pub struct DartMMCSAttachmentMeta {
     // MMCS attachments
-    pub mmcs_signature_hex: Option<String>,
-    pub mmcs_owner: Option<String>,
-    pub mmcs_url: Option<String>,
-    pub decryption_key: Option<String>,
+    pub files: Vec<MMCSFile>,
 
     // inline attachments
     pub inline_attachment: Option<String>,
@@ -879,20 +951,26 @@ pub fn encode_attachmentmeta(attachmentmeta: &AttachmentMeta) -> GZipWrapper<Att
 
 #[frb(non_opaque, mirror(MessageProto2))]
 pub struct DartMessageProto2 {
+    pub version: Option<u32>,
     pub reply: Option<String>,
+    pub padding: Option<Vec<u8>>,
 }
 
 #[frb(non_opaque, mirror(MessageProto3))]
 pub struct DartMessageProto3 {
+    pub version: Option<u32>,
     /// always 0
-    pub unk2: Option<u32>,
+    pub cmm_state: Option<u32>,
     /// always 0
-    pub unk3: Option<u32>,
+    pub cmm_asset_offset: Option<u32>,
+    pub padding: Option<Vec<u8>>,
 }
 
 #[frb(non_opaque, mirror(MessageProto4))]
 pub struct DartMessageProto4 {
+    pub version: Option<u32>,
     pub associated_message_emoji: Option<String>,
+    pub padding: Option<Vec<u8>>,
     pub service: Option<String>,
     /// test is 0, unconfirmed
     pub schedule_type: Option<u32>,
@@ -906,7 +984,7 @@ pub struct DartMessageProto4 {
 #[frb(mirror(AttachmentType))]
 pub enum DartAttachmentType {
     Inline(Vec<u8>),
-    MMCS(MMCSFile)
+    MMCS(Vec<MMCSFile>)
 }
 
 #[repr(C)]
@@ -1421,6 +1499,7 @@ pub enum DartMessage {
     NotifyAnyways,
     SetTranscriptBackground(SetTranscriptBackgroundMessage),
     Played,
+    RecoverProfile,
 }
 
 #[frb(mirror(MessageTarget))]
@@ -1570,6 +1649,12 @@ pub enum DartFTMessage {
     RespondedElsewhere {
         guid: String,
     },
+    Connected {
+        guid: String,
+    },
+    Disconnected {
+        guid: String,
+    },
 }
 
 #[frb(mirror(FTMode))]
@@ -1580,7 +1665,7 @@ pub enum DartFTMode {
     MissedOutgoing,
 }
 
-#[frb(type_64bit_int, mirror(FTSession))]
+#[frb(type_64bit_int, non_opaque, mirror(FTSession))]
 pub struct DartFTSession {
     pub group_id: String,
     pub my_handles: Vec<String>,
@@ -1588,12 +1673,16 @@ pub struct DartFTSession {
     pub link: Option<ConversationLink>,
     pub members: HashSet<FTMember>,
     pub report_id: String, // this is different from group_id because we are thinking different
-    pub start_time: Option<u64>,
+    pub start_time: Option<u64>, // ms since epoch
     pub last_rekey: Option<u64>, // ms since epoch
-    pub is_propped: bool,
+    pub creation_time: u64,
     pub is_ringing_inaccurate: bool,
     pub mode: Option<FTMode>,
+    pub is_video: bool,
     pub recent_member_adds: HashMap<String, u64>,
+    pub connection: Option<Arc<AVSession>>,
+    pub av_config: AVConfig,
+    pub is_initiator: bool,
 }
 
 #[frb(mirror(Location))]
