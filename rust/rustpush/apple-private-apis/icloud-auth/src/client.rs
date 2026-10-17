@@ -1007,26 +1007,12 @@ impl<T: AnisetteProvider> AppleAccount<T> {
         // so what to do? Don't trust apple at all. For PET, assume 300s if no duration. For everything else, guess whether the token is epoch time or duration
         // by seeing if the number is greater than 40 years in milliseconds. No token should reasonably have a duration longer than that (besides otherwise its in secs)
 
-        self.tokens = headers.get_all("X-Apple-GS-Token").iter().chain(headers.get_all("X-Apple-HB-Token").iter()).map(|header| {
-            let decoded = String::from_utf8(base64::decode(&header.as_bytes()).expect("Not base64!")).expect("Decoded not utf8!");
-            let parts = decoded.split(":").collect::<Vec<&str>>();
-            let exp = parts.get(2).map(|i| i.parse().expect("Bad expiration format?")).unwrap_or(31536000);
-
-            let time = if exp > 40 * 365 * 24 * 60 * 60 * 1000 {
-                // ms since epoch
-                SystemTime::UNIX_EPOCH + Duration::from_millis(exp)
-            } else {
-                SystemTime::now() + Duration::from_secs(exp)
-            };
-
-            (parts[0].to_string(), FetchedToken {
-                token: parts[1].to_string(),
-                expiration: time,
-            })
-        }).collect();
+        self.tokens = headers.get_all("X-Apple-GS-Token").iter().chain(headers.get_all("X-Apple-HB-Token").iter())
+            .map(|header| parse_token_header(header_str(header)?, 31536000))
+            .collect::<Result<HashMap<_, _>, Error>>()?;
 
         if let Some(pet) = headers.get("X-Apple-PE-Token") {
-            self.parse_pet_header(pet.to_str().unwrap());
+            self.parse_pet_header(header_str(pet)?)?;
             return Ok(LoginState::LoggedIn);
         }
 
@@ -1052,36 +1038,23 @@ impl<T: AnisetteProvider> AppleAccount<T> {
             return Err(Error::Bad2faCode);
         }
 
-        self.tokens = res.headers().get_all("X-Apple-GS-Token").iter().chain(res.headers().get_all("X-Apple-HB-Token").iter()).map(|header| {
-            let decoded = String::from_utf8(base64::decode(&header.as_bytes()).expect("Not base64!")).expect("Decoded not utf8!");
-            let parts = decoded.split(":").collect::<Vec<&str>>();
-
-            // default one year; this won't bite me in the back at all...
-            let exp = parts.get(3).or(parts.get(2)).map(|i| i.parse().expect("Bad expiration format?")).unwrap_or(31536000);
-            let time = if exp > 40 * 365 * 24 * 60 * 60 * 1000 {
-                // ms since epoch
-                SystemTime::UNIX_EPOCH + Duration::from_millis(exp)
-            } else {
-                SystemTime::now() + Duration::from_secs(exp)
-            };
-            
-            (parts[0].to_string(), FetchedToken {
-                token: parts[1].to_string(),
-                expiration: time,
-            })
-        }).collect();
+        // default one year; this won't bite me in the back at all...
+        self.tokens = res.headers().get_all("X-Apple-GS-Token").iter().chain(res.headers().get_all("X-Apple-HB-Token").iter())
+            .map(|header| parse_token_header(header_str(header)?, 31536000))
+            .collect::<Result<HashMap<_, _>, Error>>()?;
 
         if let Some(pet) = res.headers().get("X-Apple-PE-Token") {
-            self.parse_pet_header(pet.to_str().unwrap());
+            self.parse_pet_header(header_str(pet)?)?;
             return Ok(LoginState::LoggedIn);
         }
 
         Ok(LoginState::NeedsLogin)
     }
 
-    fn parse_pet_header(&mut self, data: &str) {
-        let decoded = String::from_utf8(base64::decode(data).unwrap()).unwrap();
-        self.tokens.insert("com.apple.gs.idms.pet".to_string(), FetchedToken { token: decoded.split(":").nth(1).unwrap().to_string(), expiration: SystemTime::now() + Duration::from_secs(decoded.split(":").nth(2).map(|a| a.parse::<u64>().expect("Bad pet format")).unwrap_or(300)) });
+    fn parse_pet_header(&mut self, data: &str) -> Result<(), Error> {
+        let (_, token) = parse_token_header(data, 300)?;
+        self.tokens.insert("com.apple.gs.idms.pet".to_string(), token);
+        Ok(())
     }
 
     fn check_error(res: &plist::Dictionary) -> Result<(), Error> {
@@ -1138,4 +1111,40 @@ impl<T: AnisetteProvider> AppleAccount<T> {
 
         Ok(headers)
     }
+}
+
+/// Parse one base64 `ID:TOKEN[:DURATION][:EXPIRATION]` GSA token header into its ID and token.
+/// Apple mixes seconds-from-now and milliseconds-since-epoch in the trailing field (the SMS 2FA
+/// endpoint appends both), so the last numeric field wins and anything above 40 years of
+/// milliseconds is read as an absolute time. A missing field falls back to `default_secs` from now.
+/// A malformed header fails the login step instead of panicking.
+fn parse_token_header(data: &str, default_secs: u64) -> Result<(String, FetchedToken), Error> {
+    let decoded = base64::decode(data).map_err(|_| Error::BadTokenHeader("not base64".to_string()))?;
+    let decoded = String::from_utf8(decoded).map_err(|_| Error::BadTokenHeader("not UTF-8".to_string()))?;
+    let parts = decoded.split(':').collect::<Vec<&str>>();
+    let (Some(id), Some(token)) = (parts.first(), parts.get(1)) else {
+        return Err(Error::BadTokenHeader("missing token field".to_string()));
+    };
+    if id.is_empty() || token.is_empty() {
+        return Err(Error::BadTokenHeader("empty id or token field".to_string()));
+    }
+    let expiration = match parts.get(3).or(parts.get(2)) {
+        Some(raw) => {
+            let value = raw.trim().parse::<u64>()
+                .map_err(|_| Error::BadTokenHeader("expiration is not a number".to_string()))?;
+            if value > 40 * 365 * 24 * 60 * 60 * 1000 {
+                // ms since epoch
+                SystemTime::UNIX_EPOCH.checked_add(Duration::from_millis(value))
+            } else {
+                SystemTime::now().checked_add(Duration::from_secs(value))
+            }
+        }
+        None => SystemTime::now().checked_add(Duration::from_secs(default_secs)),
+    }
+    .ok_or_else(|| Error::BadTokenHeader("expiration out of range".to_string()))?;
+    Ok((id.to_string(), FetchedToken { token: token.to_string(), expiration }))
+}
+
+fn header_str(value: &HeaderValue) -> Result<&str, Error> {
+    value.to_str().map_err(|_| Error::BadTokenHeader("header is not visible ASCII".to_string()))
 }

@@ -748,6 +748,18 @@ impl EncodedPeer {
     }
 }
 
+// whether a genuine peer (hash and root signature verified) has these private keys' public halves
+// as its permanent signing and encryption keys
+fn peer_holds_keys(peer: &EncodedPeer, signing: &EcKey<Private>, encryption: &EcKey<Private>) -> bool {
+    let Ok(info) = peer.get_peer_info() else { return false };
+    let same = |der: &[u8], key: &EcKey<Private>| -> bool {
+        let Ok(public) = EcKey::public_key_from_der(der) else { return false };
+        let Ok(mut ctx) = BigNumContext::new() else { return false };
+        public.public_key().eq(key.group(), key.public_key(), &mut ctx).unwrap_or(false)
+    };
+    same(info.signing_key(), signing) && same(info.encryption_key(), encryption)
+}
+
 fn digest_to_md(digest: KeystoreDigest) -> MessageDigest {
     match digest {
         KeystoreDigest::Sha256 => MessageDigest::sha256(),
@@ -1107,6 +1119,7 @@ pub const KEYCHAIN_ZONES: &[&str] = &[
 pub struct EscrowMetadata {
     pub serial: String,
     pub build: String,
+    #[serde(default)]
     pub passcode_generation: u32,
     #[serde(rename = "com.apple.securebackup.timestamp")]
     pub timestamp: String,
@@ -1626,7 +1639,13 @@ impl<P: AnisetteProvider> KeychainClient<P> {
                 modified = true;
             }
 
+            let my_id = &state.user_identity.as_ref().unwrap().identifier;
             for excluded in &trust.excludeds {
+                // a peer evicting us would leave this device unable to sync; keep ourselves trusted
+                if excluded == my_id {
+                    warn!("Ignoring exclusion of ourselves ({}) from peer {}", excluded, peer.0.hash.as_ref().unwrap());
+                    continue;
+                }
                 if current_state.excludeds.contains(excluded) { continue }
                 if current_state.includeds.contains(excluded) {
                     current_state.includeds.retain(|a| a != excluded);
@@ -1716,8 +1735,7 @@ impl<P: AnisetteProvider> KeychainClient<P> {
             return Err(PushError::BadMsg)
         }
         info!("Available as {} {:?}", outer_bottle.peer_id(), state.state.keys().collect::<Vec<_>>());
-        let Some(peer) = state.state.get(outer_bottle.peer_id()) else { return Err(PushError::PeerNotFound) };
-        peer.verify_signature(outer_bottle.bottle(), outer_bottle.peer_key_signature())?;
+        // the bottle's peer is chosen after the contents are decrypted, below
 
         let cipertext = decoded_bottle.ciphertext.as_ref().unwrap();
         let cipher = AesGcm::<Aes256, U32>::new(&decoded.derive_key(&adsid).into());
@@ -1727,13 +1745,47 @@ impl<P: AnisetteProvider> KeychainClient<P> {
         let decoded = OtInternalBottle::decode(Cursor::new(&result))?;
 
         let key_group = EcGroup::from_curve_name(Nid::SECP384R1).unwrap();
-        
+        let signing_key = ec_key_from_apple(decoded.signing_key.as_ref().unwrap().key_data.as_ref().unwrap(), &key_group);
+        let encryption_key = ec_key_from_apple(decoded.encryption_key.as_ref().unwrap().key_data.as_ref().unwrap(), &key_group);
+        let named_peer = state.state.get(outer_bottle.peer_id());
+
+        // Apple requires the peer-key signature to verify. When it doesn't, holding the private keys
+        // of a genuine peer proves the same identity, and the contents were already authenticated by
+        // the escrow-key signature and AES-GCM. Both keys must match, and the identity is built
+        // entirely from the matching peer. (Ported from corten-matrix.)
+        let (identifier, peer) = match named_peer {
+            Some(peer) if peer.verify_signature(outer_bottle.bottle(), outer_bottle.peer_key_signature()).is_ok() => {
+                (outer_bottle.peer_id().to_string(), peer)
+            }
+            _ => {
+                let holds_keys = |peer: &EncodedPeer| peer_holds_keys(peer, &signing_key, &encryption_key);
+                if let Some(peer) = named_peer.filter(|peer| holds_keys(peer)) {
+                    warn!("Bottle {}: peer-key signature does not verify, but the bottle holds the private keys of peer {}; using it",
+                        outer_bottle.bottle_id(), outer_bottle.peer_id());
+                    (outer_bottle.peer_id().to_string(), peer)
+                } else if let Some((id, peer)) = state.state.iter().find(|(_, peer)| holds_keys(peer)) {
+                    warn!("Bottle {}: labelled for peer {} ({}), but it holds the private keys of peer {}; using that peer",
+                        outer_bottle.bottle_id(), outer_bottle.peer_id(),
+                        if named_peer.is_some() { "signature does not verify" } else { "not in the trust graph" }, id);
+                    (id.clone(), peer)
+                } else {
+                    let fp = |der: Option<Vec<u8>>| der.map(|d| encode_hex(&sha256(&d)[..8])).unwrap_or_else(|| "-".to_string());
+                    warn!("Bottle {} rejected: peer {} {}; bottle keys signing={} encryption={}, OTBottle.peerSigningKey={}",
+                        outer_bottle.bottle_id(), outer_bottle.peer_id(),
+                        if named_peer.is_some() { "signature does not verify and no peer holds the bottle keys" } else { "not in the trust graph and no peer holds the bottle keys" },
+                        fp(signing_key.public_key_to_der().ok()), fp(encryption_key.public_key_to_der().ok()),
+                        fp(Some(decoded_bottle.peer_signing_key().to_vec())));
+                    return Err(if named_peer.is_some() { PushError::BadMsg } else { PushError::PeerNotFound })
+                }
+            }
+        };
+
         // reconstruct a keychain identity for our other peer
         Ok(KeychainUserIdentity {
-            identifier: outer_bottle.peer_id().to_string(),
+            identifier,
             info: peer.0.permanent_info.clone().unwrap(),
-            signing_key: SoftEcKey(ec_key_from_apple(decoded.signing_key.as_ref().unwrap().key_data.as_ref().unwrap(), &key_group)),
-            encryption_key: SoftEcKey(ec_key_from_apple(decoded.encryption_key.as_ref().unwrap().key_data.as_ref().unwrap(), &key_group)),
+            signing_key: SoftEcKey(signing_key),
+            encryption_key: SoftEcKey(encryption_key),
             current_state: peer.get_dynamic_info()?,
         })
     }

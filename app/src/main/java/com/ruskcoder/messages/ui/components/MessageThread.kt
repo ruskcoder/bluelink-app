@@ -930,6 +930,35 @@ fun MessageThread(
      */
     val tailHeldBy =
         if (settings.bubbleType == BubbleStyle.APPLE && receiptOn != lastMineId) receiptOn else null
+
+    /**
+     * An older message's "Read", standing beside the newest message's receipt — see
+     * [ThreadModel.heldReadId] — and the ones that have just stopped standing, shutting their slot.
+     *
+     * Letting go is a shrink, not a removal: the row keeps its slot for the length of the slot's own
+     * animation with the slot shut, exactly as the old row of a handover does. Run on the thread's
+     * scope rather than the effect's, so a second change landing mid-shrink starts its own instead
+     * of cancelling this one and leaving the row holding a slot forever.
+     */
+    val heldReadId = model.heldReadId
+    var heldLeaving by remember { mutableStateOf(emptySet<String>()) }
+    // What was held last time round, written down before it changed — the same reason as
+    // [previousMine]. Read straight away it covers the frame before the effect runs, when the row
+    // would otherwise lose its receipt outright and swap to its tapped caption for a frame.
+    val previousHeld = remember { arrayOfNulls<String>(1) }
+    val heldDropping = previousHeld[0]?.takeIf { it != heldReadId }
+    LaunchedEffect(heldReadId) {
+        val from = previousHeld[0]
+        previousHeld[0] = heldReadId
+        if (from == null || from == heldReadId) return@LaunchedEffect
+        heldLeaving = heldLeaving + from
+        scope.launch {
+            delay(ReceiptGrowMs.toLong())
+            heldLeaving = heldLeaving - from
+        }
+    }
+    /** Whether this row wears a held "Read", or is letting one go. */
+    fun holdsRead(id: String) = id == heldReadId || id == heldDropping || id in heldLeaving
     // Messages that turned up while the conversation was already on screen — the ones that get an
     // entrance. Everything present when the thread first loads is simply there, so opening a chat
     // doesn't play a send animation for the whole history.
@@ -1062,7 +1091,10 @@ fun MessageThread(
             // The old bubble's tail waits for the receipt rather than coming off the moment the new
             // message lands. The new message is left alone: it arrives with its own tail and grows
             // in wearing it, so the run carries two until the handover. See [tailHeldBy].
-            val tailed = if (id == tailHeldBy) row.copy(isLastInRun = true) else row
+            // A held "Read" keeps its tail too, for as long as it stands: it comes off on the frame
+            // the line starts to shrink, the same moment a handover takes the old row's.
+            val holdsTail = settings.bubbleType == BubbleStyle.APPLE && id == heldReadId
+            val tailed = if (id == tailHeldBy || holdsTail) row.copy(isLastInRun = true) else row
             MessageThreadRow(
                 modifier = itemMotion,
                 row = tailed,
@@ -1080,8 +1112,8 @@ fun MessageThread(
                 selected = id in selectedIds,
                 // Both ends of a handover keep a slot for the length of it, one opening as the
                 // other shuts.
-                showReceipt = id == receiptOn || id == receiptLeaving,
-                receiptVisible = id == receiptOn,
+                showReceipt = id == receiptOn || id == receiptLeaving || holdsRead(id),
+                receiptVisible = id == receiptOn || id == heldReadId,
                 receiptHandedOver = handover?.leaving != null && id == handover?.on,
                 arriving = id in arrivals,
                 bubbleType = settings.bubbleType,

@@ -116,7 +116,8 @@ pub struct StatusKitState {
 impl StatusKitState {
     fn build_aps_message_for(&self, channel: &APSChannelIdentifier, join: bool) -> APSChannel {
         let Some(recent) = self.recent_channels.iter().find(|c| &c.identifier == channel) else {
-            panic!("No saved channel for identifier!")
+            warn!("StatusKit: no saved channel for identifier, using last_msg_ns=0 (will replay)");
+            return APSChannel { identifier: channel.clone(), last_msg_ns: 0, subscribe: join };
         };
 
         APSChannel {

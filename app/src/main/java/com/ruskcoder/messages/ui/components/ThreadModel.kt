@@ -7,12 +7,15 @@ import androidx.compose.runtime.Stable
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import com.ruskcoder.messages.data.model.Attachment
+import com.ruskcoder.messages.data.model.DeliveryStatus
 import com.ruskcoder.messages.data.model.GroupMember
 import com.ruskcoder.messages.data.model.Message
 import com.ruskcoder.messages.data.model.StickerPlacement
 import com.ruskcoder.messages.data.model.canHaveStatus
+import com.ruskcoder.messages.data.model.receipts
 import com.ruskcoder.messages.data.model.replyTo
 import com.ruskcoder.messages.data.model.senderId
+import com.ruskcoder.messages.data.model.status
 import com.ruskcoder.messages.data.model.threadEndIds
 import com.ruskcoder.messages.data.model.threadRoots
 import com.ruskcoder.messages.data.model.withoutPollUpdates
@@ -171,6 +174,11 @@ internal class ThreadModel(
     val items: List<ThreadItem>,
     /** The newest outgoing message that can carry a receipt, which is the one that shows it. */
     val lastMineId: String?,
+    /**
+     * An older outgoing message that keeps its "Read" standing beside the newest one's receipt —
+     * see [heldReadReceipt]. Null when the newest message's own receipt is the only one.
+     */
+    val heldReadId: String? = null,
     val forcedTails: Set<String>,
     val forcedAvatars: Set<String>,
     /** The stickers laid on each message, by the id of the bubble they are drawn on, oldest first. */
@@ -492,10 +500,35 @@ internal fun buildThreadModel(inputs: ThreadInputs): ThreadModel {
         messages = messages,
         items = withBreaks(rows.asReversed(), firstUnreadId),
         lastMineId = messages.lastOrNull { it.mine && it.canHaveStatus() }?.id,
+        heldReadId = heldReadReceipt(messages),
         forcedTails = rows.filter { it.forcedTail }.mapTo(HashSet()) { it.message.id },
         forcedAvatars = rows.filter { it.forcedAvatar }.mapTo(HashSet()) { it.message.id },
         stickers = stickers,
     )
+}
+
+/** How long after a message was read the next send has to come for the "Read" to stay up. */
+private const val HeldReadGapMs = 5 * 60_000L
+
+/**
+ * The newest read outgoing message, when it is not the newest outgoing message and the one sent
+ * after it went out at least [HeldReadGapMs] after it was read.
+ *
+ * A message sent well after the last one was read starts a new exchange, and the newest receipt
+ * only says how far *that* got — "Delivered" under it no longer tells you the earlier message was
+ * seen. So the old "Read" stays standing, tail and all, until a newer message is read and takes
+ * the word over.
+ */
+private fun heldReadReceipt(messages: List<Message>): String? {
+    val mine = messages.filter { it.mine && it.canHaveStatus() }
+    val index = mine.indexOfLast { it.status() == DeliveryStatus.READ || it.status() == DeliveryStatus.PLAYED }
+    // Nothing read, or the newest message is itself the read one and says so on its own.
+    if (index < 0 || index == mine.lastIndex) return null
+    val read = mine[index]
+    val readAt = read.receipts()?.read?.values?.maxOrNull() ?: read.createdAt
+    val next = mine[index + 1].createdAt
+    if (readAt <= 0L || next <= 0L) return null
+    return read.id.takeIf { next - readAt >= HeldReadGapMs }
 }
 
 /**

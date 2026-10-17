@@ -262,7 +262,9 @@ fun GoogleReceipt(
         // Flush with the bubble's trailing edge above it — the same 8dp inset the bubble row keeps.
         // Tight under the bubble's trailing edge: the line belongs to the message above it, and
         // the space it was keeping read as a gap between two messages instead.
-        modifier = modifier.padding(end = GoogleReceiptInset - BubbleRowInset).offset(y = -GoogleReceiptRise),
+        // The row is already inset by BubbleRowInset, wider than GoogleReceiptInset, so this has to
+        // push outward — an offset, since a negative padding throws.
+        modifier = modifier.offset(x = BubbleRowInset - GoogleReceiptInset, y = -GoogleReceiptRise),
     ) {
         // A dot keeps the two facts apart: Google has no blue-link idiom to borrow, and a
         // coloured word here would read as a warning.

@@ -36,4 +36,6 @@ pub enum Error {
     SerdeError(#[from] serde_json::Error),
     #[error("Disable hardware authentication keys and try again!")]
     HardwareKeyError,
+    #[error("Bad GSA token header: {0}")]
+    BadTokenHeader(String),
 }
