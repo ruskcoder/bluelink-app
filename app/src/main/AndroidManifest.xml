@@ -50,6 +50,19 @@
         android:maxSdkVersion="32" />
 
     <!--
+        FaceTime. A self-managed Telecom account (MANAGE_OWN_CALLS) so Bluetooth, cars and Do Not
+        Disturb treat it as a call; a foreground service whose types grow with the call; a full-screen
+        intent for the ringing screen; and audio settings for the communication mode and echo canceller.
+    -->
+    <uses-permission android:name="android.permission.MANAGE_OWN_CALLS" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_PHONE_CALL" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CAMERA" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+
+    <!--
         Games run in a separate, optional app (the pigeon app, com.ruskcoder.messages.games). On
         API 30+ it is invisible to a package lookup or a service bind without an explicit <queries>
         entry, even when installed. See PigeonClient.
@@ -188,6 +201,39 @@
             <property
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
                 android:value="Keeps a connection alive with Apple Push Services to receive end-to-end encrypted iMessages directly from Apple." />
+        </service>
+
+        <!--
+            The FaceTime call screen. Its own task so a call never drags the messages app forward,
+            portrait because sent rotation comes from the accelerometer, and allowed over the lock
+            screen because the incoming call's full-screen intent opens it.
+        -->
+        <activity
+            android:name=".facetime.CallActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Messages"
+            android:launchMode="singleTask"
+            android:taskAffinity="com.ruskcoder.messages.call"
+            android:excludeFromRecents="false"
+            android:screenOrientation="portrait"
+            android:showWhenLocked="true"
+            android:turnScreenOn="true"
+            tools:ignore="DiscouragedApi,LockedOrientationActivity" />
+
+        <!-- Holds a FaceTime call for its duration; the types are claimed as the call earns them. -->
+        <service
+            android:name=".facetime.CallService"
+            android:exported="false"
+            android:foregroundServiceType="phoneCall|microphone|camera|mediaProjection" />
+
+        <!-- Lets Telecom create the self-managed connection behind a FaceTime call. -->
+        <service
+            android:name=".facetime.FaceTimeConnectionService"
+            android:exported="true"
+            android:permission="android.permission.BIND_TELECOM_CONNECTION_SERVICE">
+            <intent-filter>
+                <action android:name="android.telecom.ConnectionService" />
+            </intent-filter>
         </service>
 
         <!--

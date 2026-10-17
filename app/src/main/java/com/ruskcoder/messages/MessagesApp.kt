@@ -15,6 +15,7 @@ class MessagesApp : Application(), SingletonImageLoader.Factory {
         container = AppContainer(this)
         // Counts the app's activities in and out, which is how the lock knows the app was left.
         registerActivityLifecycleCallbacks(container.appLock)
+        com.ruskcoder.messages.facetime.CallManager.init(this)
     }
 
     /**
